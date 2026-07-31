@@ -505,4 +505,182 @@ select pg_temp.assert_eq(
      and reason = 'Advisor sat the assessment offline while travelling'),
   1, 'manager override writes an audit row carrying the reason');
 
+-- ===========================================================================
+-- PHASE 3 — attendance
+-- ===========================================================================
+--
+-- Attendance is manager-controlled with no correction-request workflow, which
+-- means the advisor write path must not exist at all — not merely be hidden.
+
+select pg_temp.act_as_owner();
+
+-- A past working day. Fixed rather than relative to current_date so the suite
+-- gives the same result whenever it is run.
+\set workday '2026-07-27'
+
+insert into public.attendance_records (advisor_id, attendance_date, status, recorded_by)
+values
+  (:'alice', :'workday', 'present', :'manager'),
+  (:'bob',   :'workday', 'absent',  :'manager');
+
+select pg_temp.act_as(:'alice');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.attendance_records),
+  1, 'advisor sees only their own attendance');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.attendance_records where advisor_id = :'bob'),
+  0, 'advisor cannot read another advisor''s attendance');
+
+with attempt as (
+  update public.attendance_records set status = 'present'
+  where advisor_id = :'alice' returning 1
+)
+select pg_temp.assert_eq((select count(*) from attempt), 0,
+  'advisor cannot change their own attendance status');
+
+do $$
+begin
+  begin
+    insert into public.attendance_records (advisor_id, attendance_date, status)
+    values ('11111111-1111-1111-1111-111111111111', '2026-07-28', 'present');
+    raise exception 'FAIL: advisor was able to record their own attendance';
+  exception when insufficient_privilege or check_violation then
+    raise notice 'pass: advisor cannot record their own attendance';
+  end;
+end;
+$$;
+
+do $$
+begin
+  begin
+    perform public.save_attendance('2026-07-28',
+      '[{"advisor_id":"11111111-1111-1111-1111-111111111111","status":"present"}]'::jsonb);
+    raise exception 'FAIL: advisor was able to call save_attendance';
+  exception when raise_exception then
+    if position('manager or administrator' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: advisor cannot call save_attendance';
+  end;
+end;
+$$;
+
+do $$
+begin
+  begin
+    perform public.attendance_summary('22222222-2222-2222-2222-222222222222');
+    raise exception 'FAIL: advisor read another advisor''s attendance summary';
+  exception when raise_exception then
+    if position('only view your own' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: advisor cannot read another advisor''s attendance summary';
+  end;
+end;
+$$;
+
+-- Reading their own is allowed, and must stay allowed.
+select pg_temp.assert_eq(
+  ((public.attendance_summary(:'alice') ->> 'present')::bigint),
+  1, 'advisor can read their own attendance summary');
+
+-- ---------------------------------------------------------------------------
+-- Working-day and edit rules, exercised through the RPC as a manager
+-- ---------------------------------------------------------------------------
+
+select pg_temp.act_as(:'manager');
+
+do $$
+begin
+  begin
+    -- Saturday.
+    perform public.save_attendance('2026-07-25',
+      '[{"advisor_id":"11111111-1111-1111-1111-111111111111","status":"present"}]'::jsonb);
+    raise exception 'FAIL: attendance was recorded on a Saturday';
+  exception when raise_exception then
+    if position('not a working day' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: attendance is refused on a non-working day';
+  end;
+end;
+$$;
+
+do $$
+begin
+  begin
+    perform public.save_attendance('2099-01-05',
+      '[{"advisor_id":"11111111-1111-1111-1111-111111111111","status":"present"}]'::jsonb);
+    raise exception 'FAIL: attendance was recorded for a future date';
+  exception when raise_exception then
+    if position('future date' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: attendance is refused for a future date';
+  end;
+end;
+$$;
+
+do $$
+begin
+  begin
+    -- Bob is already saved as absent; flipping him without a reason must fail.
+    perform public.save_attendance('2026-07-27',
+      '[{"advisor_id":"22222222-2222-2222-2222-222222222222","status":"present"}]'::jsonb);
+    raise exception 'FAIL: a saved attendance record was changed with no reason';
+  exception when raise_exception then
+    if position('requires a reason' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: changing saved attendance requires a reason';
+  end;
+end;
+$$;
+
+select public.save_attendance('2026-07-27',
+  '[{"advisor_id":"22222222-2222-2222-2222-222222222222","status":"present",
+     "reason":"Was at a client meeting with a senior advisor"}]'::jsonb);
+
+select pg_temp.act_as_owner();
+
+select pg_temp.assert_eq(
+  (select count(*) from public.attendance_audit
+   where advisor_id = :'bob'
+     and previous_status = 'absent' and new_status = 'present'
+     and reason = 'Was at a client meeting with a senior advisor'),
+  1, 'changing saved attendance writes an audit row carrying the reason');
+
+-- ---------------------------------------------------------------------------
+-- Make-up tasks follow the absence, and are withdrawn when it is corrected
+-- ---------------------------------------------------------------------------
+
+select pg_temp.act_as(:'manager');
+
+select public.save_attendance('2026-07-28',
+  '[{"advisor_id":"11111111-1111-1111-1111-111111111111","status":"absent"}]'::jsonb);
+
+select pg_temp.act_as_owner();
+
+select pg_temp.assert_eq(
+  (select count(*) from public.makeup_tasks mt
+   join public.enrolments e on e.id = mt.enrolment_id
+   where e.advisor_id = :'alice' and mt.status = 'outstanding'),
+  1, 'an absence creates an outstanding make-up task');
+
+select pg_temp.act_as(:'manager');
+
+select public.save_attendance('2026-07-28',
+  '[{"advisor_id":"11111111-1111-1111-1111-111111111111","status":"present",
+     "reason":"Marked absent in error"}]'::jsonb);
+
+select pg_temp.act_as_owner();
+
+select pg_temp.assert_eq(
+  (select count(*) from public.makeup_tasks mt
+   join public.enrolments e on e.id = mt.enrolment_id
+   where e.advisor_id = :'alice' and mt.status = 'outstanding'),
+  0, 'correcting an absence withdraws the make-up task');
+
+-- ---------------------------------------------------------------------------
+-- The banner counts only working days
+-- ---------------------------------------------------------------------------
+
+select pg_temp.act_as(:'manager');
+
+select pg_temp.assert_eq(
+  public.attendance_pending_for('2026-07-25')::bigint,
+  0, 'nothing is pending on a Saturday, so the reminder stays quiet');
+
 rollback;

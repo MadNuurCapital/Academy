@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { AlertTriangle, ArrowRight, Users } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CalendarCheck, Users } from 'lucide-react';
 import { useAuth } from '@/auth/useAuth';
 import { useAllAdvisors, today } from '@/api/enrolments';
 import { usePublicHolidays, useSettings } from '@/api/settings';
+import { useAttendancePending } from '@/api/attendance';
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/States';
 import { ProgressBadge } from '@/components/ui/StatusBadge';
@@ -20,6 +21,7 @@ export function ManagerDashboard() {
   const { data: advisors, isLoading, error, refetch } = useAllAdvisors();
   const { data: settings } = useSettings();
   const { data: holidays } = usePublicHolidays();
+  const { data: attendancePending } = useAttendancePending();
 
   const firstName = profile?.full_name.split(' ')[0] ?? 'there';
 
@@ -65,6 +67,28 @@ export function ManagerDashboard() {
         <h1>Good day, {firstName}</h1>
         <p className="mt-1 text-sm text-muted-foreground">Who needs your attention today.</p>
       </div>
+
+      {/*
+        The attendance reminder. Sits above everything else because recording it
+        is the one thing a manager does every single morning, and it returns 0
+        on a non-working day so the banner stays quiet at weekends.
+      */}
+      {attendancePending !== undefined && attendancePending > 0 && (
+        <Link
+          to="/manage/attendance"
+          className="flex items-start gap-3 rounded-md border border-warning/30 bg-warning/5 px-4 py-3 hover:bg-warning/10"
+        >
+          <CalendarCheck className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden="true" />
+          <div className="flex-1">
+            <p className="font-medium">Today's attendance is not recorded</p>
+            <p className="text-sm text-muted-foreground">
+              {attendancePending} {attendancePending === 1 ? 'advisor is' : 'advisors are'} still
+              unmarked. It takes under a minute.
+            </p>
+          </div>
+          <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        </Link>
+      )}
 
       {enrolled.length === 0 ? (
         <EmptyState

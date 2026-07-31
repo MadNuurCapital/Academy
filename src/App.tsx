@@ -20,6 +20,9 @@ import { ManagerDashboard } from '@/pages/manager/ManagerDashboard';
 import { AdvisorListPage } from '@/pages/manager/AdvisorListPage';
 import { AdvisorDetailPage } from '@/pages/manager/AdvisorDetailPage';
 import { EnrolPage } from '@/pages/manager/EnrolPage';
+import { TodayAttendancePage } from '@/pages/manager/TodayAttendancePage';
+import { AttendanceHistoryPage } from '@/pages/manager/AttendanceHistoryPage';
+import { MyAttendancePage } from '@/pages/advisor/MyAttendancePage';
 import { SettingsPage } from '@/pages/admin/SettingsPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
 import { RoleHomeRedirect } from '@/pages/RoleHomeRedirect';
@@ -73,7 +76,7 @@ export function App() {
                 <Route path="/module/:moduleId" element={<ModulePage />} />
                 <Route path="/lesson/:lessonId" element={<LessonPage />} />
                 <Route path="/quiz/:quizId" element={<QuizPage />} />
-                <Route path="/attendance" element={<PlaceholderPage title="My attendance" phase="Phase 3" />} />
+                <Route path="/attendance" element={<MyAttendancePage />} />
                 <Route path="/scripts" element={<PlaceholderPage title="Script library" phase="Phase 4" />} />
                 <Route path="/scripts/:scriptId" element={<PlaceholderPage title="Script" phase="Phase 4" />} />
                 <Route path="/concepts" element={<PlaceholderPage title="Concept presentations" phase="Phase 4" />} />
@@ -91,8 +94,8 @@ export function App() {
             <Route element={<ProtectedRoute allowedRoles={['manager', 'admin']} />}>
               <Route element={<ManagerLayout />}>
                 <Route path="/manage" element={<ManagerDashboard />} />
-                <Route path="/manage/attendance" element={<PlaceholderPage title="Today's attendance" phase="Phase 3" />} />
-                <Route path="/manage/attendance/history" element={<PlaceholderPage title="Attendance history" phase="Phase 3" />} />
+                <Route path="/manage/attendance" element={<TodayAttendancePage />} />
+                <Route path="/manage/attendance/history" element={<AttendanceHistoryPage />} />
                 <Route path="/manage/advisors" element={<AdvisorListPage />} />
                 <Route path="/manage/advisors/:advisorId" element={<AdvisorDetailPage />} />
                 <Route path="/manage/enrol" element={<EnrolPage />} />
