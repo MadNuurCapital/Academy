@@ -48,18 +48,28 @@ $$;
 grant usage on schema auth to authenticated;
 SQL
 
+# Supabase grants the authenticated role broad table access via DEFAULT
+# PRIVILEGES, which apply at table-creation time. Setting them up *before* the
+# migrations run is what makes this an honest simulation: any privilege a
+# migration revokes afterwards must still be revoked at the end, exactly as in
+# production.
+#
+# Doing it the other way round — migrations first, then a blanket
+# "grant select on all tables" — silently re-grants the column privileges that
+# migration 0008 revokes to protect the quiz answer key, and the suite then
+# passes for the wrong reason.
+echo "→ Applying Supabase-equivalent default privileges"
+$PSQL -q -v ON_ERROR_STOP=1 -d "${DB_NAME}" <<'SQL' >/dev/null
+grant usage on schema public to authenticated;
+alter default privileges in schema public
+  grant select, insert, update, delete on tables to authenticated;
+SQL
+
 echo "→ Applying migrations"
 for migration in "${REPO_ROOT}"/supabase/migrations/*.sql; do
   echo "   $(basename "${migration}")"
   $PSQL -q -v ON_ERROR_STOP=1 -d "${DB_NAME}" -f "${migration}" >/dev/null
 done
-
-# Grants Supabase applies to the authenticated role by default. Without them the
-# tests would fail on a missing grant rather than on the policy being checked.
-$PSQL -q -v ON_ERROR_STOP=1 -d "${DB_NAME}" <<'SQL' >/dev/null
-grant usage on schema public to authenticated;
-grant select, insert, update, delete on all tables in schema public to authenticated;
-SQL
 
 echo "→ Running RLS assertions"
 if $PSQL -v ON_ERROR_STOP=1 -d "${DB_NAME}" \
