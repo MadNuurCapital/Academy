@@ -9,7 +9,18 @@ import { LoginPage } from '@/pages/auth/LoginPage';
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage';
 import { SetPasswordPage } from '@/pages/auth/SetPasswordPage';
 import { AdvisorDashboard } from '@/pages/advisor/AdvisorDashboard';
+import { RoadmapPage } from '@/pages/advisor/RoadmapPage';
+import { DayPage } from '@/pages/advisor/DayPage';
+import { ModulePage } from '@/pages/advisor/ModulePage';
+import { LessonPage } from '@/pages/advisor/LessonPage';
+import { QuizPage } from '@/pages/advisor/QuizPage';
+import { ProgressPage } from '@/pages/advisor/ProgressPage';
+import { ProfilePage } from '@/pages/advisor/ProfilePage';
 import { ManagerDashboard } from '@/pages/manager/ManagerDashboard';
+import { AdvisorListPage } from '@/pages/manager/AdvisorListPage';
+import { AdvisorDetailPage } from '@/pages/manager/AdvisorDetailPage';
+import { EnrolPage } from '@/pages/manager/EnrolPage';
+import { SettingsPage } from '@/pages/admin/SettingsPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
 import { RoleHomeRedirect } from '@/pages/RoleHomeRedirect';
 import { NoAccessPage } from '@/pages/NoAccessPage';
@@ -57,11 +68,11 @@ export function App() {
             <Route element={<ProtectedRoute allowedRoles={['advisor']} />}>
               <Route element={<AdvisorLayout />}>
                 <Route path="/today" element={<AdvisorDashboard />} />
-                <Route path="/roadmap" element={<PlaceholderPage title="My roadmap" phase="Phase 2" />} />
-                <Route path="/day/:dayNumber" element={<PlaceholderPage title="Programme day" phase="Phase 2" />} />
-                <Route path="/module/:moduleId" element={<PlaceholderPage title="Module" phase="Phase 2" />} />
-                <Route path="/lesson/:lessonId" element={<PlaceholderPage title="Lesson" phase="Phase 2" />} />
-                <Route path="/quiz/:quizId" element={<PlaceholderPage title="Quiz" phase="Phase 2" />} />
+                <Route path="/roadmap" element={<RoadmapPage />} />
+                <Route path="/day/:dayNumber" element={<DayPage />} />
+                <Route path="/module/:moduleId" element={<ModulePage />} />
+                <Route path="/lesson/:lessonId" element={<LessonPage />} />
+                <Route path="/quiz/:quizId" element={<QuizPage />} />
                 <Route path="/attendance" element={<PlaceholderPage title="My attendance" phase="Phase 3" />} />
                 <Route path="/scripts" element={<PlaceholderPage title="Script library" phase="Phase 4" />} />
                 <Route path="/scripts/:scriptId" element={<PlaceholderPage title="Script" phase="Phase 4" />} />
@@ -70,9 +81,9 @@ export function App() {
                 <Route path="/coaching/:sessionId" element={<PlaceholderPage title="Coaching session" phase="Phase 4" />} />
                 <Route path="/fieldwork" element={<PlaceholderPage title="Joint fieldwork" phase="Phase 4" />} />
                 <Route path="/feedback" element={<PlaceholderPage title="Feedback" phase="Phase 4" />} />
-                <Route path="/progress" element={<PlaceholderPage title="My progress" phase="Phase 2" />} />
+                <Route path="/progress" element={<ProgressPage />} />
                 <Route path="/notifications" element={<PlaceholderPage title="Notifications" phase="Phase 4" />} />
-                <Route path="/profile" element={<PlaceholderPage title="My profile" phase="Phase 2" />} />
+                <Route path="/profile" element={<ProfilePage />} />
               </Route>
             </Route>
 
@@ -82,9 +93,9 @@ export function App() {
                 <Route path="/manage" element={<ManagerDashboard />} />
                 <Route path="/manage/attendance" element={<PlaceholderPage title="Today's attendance" phase="Phase 3" />} />
                 <Route path="/manage/attendance/history" element={<PlaceholderPage title="Attendance history" phase="Phase 3" />} />
-                <Route path="/manage/advisors" element={<PlaceholderPage title="Advisors" phase="Phase 2" />} />
-                <Route path="/manage/advisors/:advisorId" element={<PlaceholderPage title="Advisor detail" phase="Phase 2" />} />
-                <Route path="/manage/enrol" element={<PlaceholderPage title="Enrol an advisor" phase="Phase 2" />} />
+                <Route path="/manage/advisors" element={<AdvisorListPage />} />
+                <Route path="/manage/advisors/:advisorId" element={<AdvisorDetailPage />} />
+                <Route path="/manage/enrol" element={<EnrolPage />} />
                 <Route path="/manage/reviews" element={<PlaceholderPage title="Review queue" phase="Phase 4" />} />
                 <Route path="/manage/reviews/:assessmentId" element={<PlaceholderPage title="Score a practical" phase="Phase 4" />} />
                 <Route path="/manage/coaching" element={<PlaceholderPage title="Coaching" phase="Phase 4" />} />
@@ -109,7 +120,7 @@ export function App() {
                 <Route path="/admin/rubrics" element={<PlaceholderPage title="Scoring rubrics" phase="Phase 4" />} />
                 <Route path="/admin/users" element={<PlaceholderPage title="Users and roles" phase="Phase 2" />} />
                 <Route path="/admin/holidays" element={<PlaceholderPage title="Public holidays" phase="Phase 3" />} />
-                <Route path="/admin/settings" element={<PlaceholderPage title="Settings" phase="Phase 2" />} />
+                <Route path="/admin/settings" element={<SettingsPage />} />
                 <Route path="/admin/audit" element={<PlaceholderPage title="Audit log" phase="Phase 3" />} />
               </Route>
             </Route>

@@ -13,17 +13,18 @@ an independent certified advisor at Day 30.
 
 ## Status
 
-**Phase 1 of 6 complete.** Foundation only: authentication, roles, route guards, database
-schema, Row Level Security, the working-day engine, and deployment configuration.
+**Phase 2 of 6 complete.** A manager can enrol an advisor; that advisor works through
+lessons, sits quizzes, and unlocks the next day by passing — with the 80% gate enforced by
+the database rather than the browser.
 
-Every route from the specification is registered and permission-guarded, but screens
-arriving in later phases render a placeholder. This is deliberate — it lets navigation,
-role guards and direct-URL refresh be verified before the features exist.
+Routes belonging to later phases are registered and permission-guarded but render a
+placeholder, so navigation, role guards and direct-URL refresh stay verifiable before those
+features exist.
 
 | Phase | Scope | Status |
 |---|---|:--:|
 | 1 | Foundation — auth, roles, schema, RLS, deployment | ✅ Done |
-| 2 | Core training — enrolment, roadmap, modules, quizzes, advisor dashboard | ⬜ |
+| 2 | Core training — enrolment, roadmap, modules, quizzes, advisor dashboard | ✅ Done |
 | 3 | Attendance — daily marking, history, audit trail, make-up tasks | ⬜ |
 | 4 | Practical development — scripts, concepts, rubrics, coaching, fieldwork | ⬜ |
 | 5 | Reporting & readiness — reports, final assessments, readiness decision | ⬜ |
@@ -176,15 +177,67 @@ src/
     workingDays.ts    The working-day engine — see below
     supabase.ts       Browser client (anon key only)
     cn.ts             Tailwind class merging
+  api/            TanStack Query hooks, one module per domain
   pages/          Route components, grouped by role
   styles/
     theme.css     Every brand colour, in one file
   types/          Database types
 supabase/
   migrations/     Ordered SQL — schema, then RLS
+  seed/           Optional programme content
+  tests/          RLS assertions
 ```
 
 ---
+
+## How progression works
+
+Days unlock **sequentially**, with no date gate. Day N+1 opens the moment every required
+module on Day N is complete and its quiz passed — whether that is today or next Tuesday. An
+advisor who works quickly finishes early; one who is absent simply resumes where they left
+off.
+
+The rules that matter are enforced in the database, not the interface:
+
+| Rule | Where it lives |
+|---|---|
+| 80% to pass, unlimited attempts | `submit_quiz_attempt`, reading `app_settings` |
+| Failed quiz blocks the next day | `evaluate_day_completion` |
+| Correct answers revealed only on a pass | `submit_quiz_attempt` returns `review` only when `passed` |
+| Advisors cannot score themselves | No advisor UPDATE policy on `quiz_attempts` |
+| Advisors cannot unlock their own days | No advisor write policy on `enrolment_days` |
+| Manager override needs a reason | `manager_unlock_day` raises on a blank one, writes `audit_log` |
+
+### Why the browser is never trusted with a quiz
+
+Two failure modes drive the design, and both are invisible in the interface:
+
+1. **The answer key.** If `quiz_options.is_correct` were readable, every quiz would be one
+   API call away from being defeated, no matter what the screen renders. A **column-level
+   privilege** — not RLS, not the UI — makes PostgreSQL refuse the read. Advisors can still
+   read `option_text`, which they need in order to answer.
+2. **The score.** If the client computed the score and posted it, someone would post 100.
+   Scoring happens inside `submit_quiz_attempt`, which compares against the real answers,
+   ignores any answer belonging to another quiz, and counts unanswered questions as wrong.
+
+A guard at the end of migration 0008 fails loudly if a blanket table grant has undone the
+column privilege — the failure mode is otherwise silent, and a stray
+`grant select on all tables` in the SQL editor would expose every answer with nothing
+visible to show it.
+
+## Seed content
+
+`supabase/seed/programme.sql` is **optional and idempotent**. It creates the 30-day
+programme skeleton plus real content for Days 1–3 so the progression engine can be walked
+end to end:
+
+```bash
+psql -d <database> -f supabase/seed/programme.sql
+```
+
+Production does not depend on it. A fresh deployment works with no content at all, and an
+administrator can author everything through the interface instead. The script creates no
+users and no credentials.
 
 ## The working-day engine
 
@@ -231,10 +284,15 @@ interface; a user who defeats them still cannot read a row the database policies
 
 ### Verified, not assumed
 
-`supabase/tests/rls.test.sql` asserts the policies against a real database — 27 checks
-covering read isolation, write restrictions, privilege escalation, draft-content visibility
-and notification scoping. Run with `npm run test:rls`; it exits non-zero if a migration
-widens access.
+`supabase/tests/rls.test.sql` asserts the policies against a real database — 44 checks
+covering read isolation, write restrictions, privilege escalation, draft-content
+visibility, notification scoping, and every route by which an advisor might defeat the quiz
+gate. Run with `npm run test:rls`; it exits non-zero if a migration widens access.
+
+The runner applies Supabase's default privileges **before** the migrations, mirroring
+production. Doing it the other way round — migrations first, then a blanket
+`grant select on all tables` — silently re-grants the column privileges migration 0008
+revokes, and the suite passes for the wrong reason.
 
 A note for anyone extending it: `set local role` only takes effect **inside a transaction
 block**. Outside one it is silently ignored, the query runs as superuser, RLS is bypassed
