@@ -1,0 +1,10 @@
+# ATLAS Academy — SPA routing
+#
+# Every path is served index.html with a 200 so React Router can handle it.
+# Without this rule, refreshing on /manage/attendance or opening a direct link
+# to /day/12 returns a 404 from Netlify, because no such file exists on disk.
+#
+# The 200 matters: a 301/302 would change the URL in the address bar and lose
+# the route the user asked for.
+
+/*    /index.html    200

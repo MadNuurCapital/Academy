@@ -1,0 +1,45 @@
+/*
+ * ATLAS Academy — theme tokens
+ *
+ * This is the ONLY place brand colours are defined. To apply MadNuur Capital's
+ * palette, replace the RGB triplets below. Nothing else in the codebase needs
+ * to change.
+ *
+ * Values are space-separated RGB channels (not hex) so Tailwind can apply
+ * opacity modifiers, e.g. `bg-primary/10`.
+ *
+ * Current palette is a deliberately restrained placeholder: deep slate-navy
+ * with a single teal accent. Professional, not childish, not overly colourful.
+ */
+
+:root {
+  /* Surfaces */
+  --colour-background: 248 250 252; /* page background   #f8fafc */
+  --colour-surface: 255 255 255; /* cards             #ffffff */
+  --colour-foreground: 15 23 42; /* body text         #0f172a */
+
+  /* Muted / secondary text and fills */
+  --colour-muted: 241 245 249; /* #f1f5f9 */
+  --colour-muted-foreground: 100 116 139; /* #64748b */
+
+  /* Lines and focus */
+  --colour-border: 226 232 240; /* #e2e8f0 */
+  --colour-input: 226 232 240; /* #e2e8f0 */
+  --colour-ring: 15 118 110; /* #0f766e */
+
+  /* Brand */
+  --colour-primary: 30 41 59; /* #1e293b deep slate */
+  --colour-primary-foreground: 248 250 252; /* #f8fafc */
+  --colour-accent: 13 148 136; /* #0d9488 teal */
+  --colour-accent-foreground: 255 255 255; /* #ffffff */
+
+  /* Status — used for programme and attendance states */
+  --colour-success: 21 128 61; /* #15803d On Track / Present */
+  --colour-success-foreground: 255 255 255;
+  --colour-warning: 180 83 9; /* #b45309 Attention / Late */
+  --colour-warning-foreground: 255 255 255;
+  --colour-danger: 185 28 28; /* #b91c1c Behind / Absent */
+  --colour-danger-foreground: 255 255 255;
+
+  --radius: 0.625rem;
+}

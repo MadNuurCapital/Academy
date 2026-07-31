@@ -1,0 +1,46 @@
+@import './theme.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    /* Large readable text — advisors are reading lessons, often on a phone. */
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* Visible focus for keyboard users on every interactive element. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  h1 {
+    @apply text-2xl font-semibold tracking-tight sm:text-3xl;
+  }
+
+  h2 {
+    @apply text-xl font-semibold tracking-tight sm:text-2xl;
+  }
+
+  h3 {
+    @apply text-lg font-semibold tracking-tight;
+  }
+}
+
+@layer utilities {
+  /* Keeps content clear of the mobile bottom tab bar and the iOS home indicator. */
+  .pb-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+  }
+}
