@@ -13,22 +13,23 @@ an independent certified advisor at Day 30.
 
 ## Status
 
-**Phase 2 of 6 complete.** A manager can enrol an advisor; that advisor works through
-lessons, sits quizzes, and unlocks the next day by passing — with the 80% gate enforced by
-the database rather than the browser.
+**The application is functionally complete.** A manager enrols an advisor; the advisor
+works through lessons and quizzes with the 80% gate enforced by the database; attendance is
+marked daily in under a minute; coaching, fieldwork and practical assessment are recorded;
+and the programme ends in a readiness decision with an explicit blocker checklist.
 
-Routes belonging to later phases are registered and permission-guarded but render a
-placeholder, so navigation, role guards and direct-URL refresh stay verifiable before those
-features exist.
+**Curriculum authoring is partial.** All 30 programme days exist with their agreed titles
+and phases, and 7 of them carry full published-ready content. The rest need authoring —
+see *Curriculum status* below.
 
 | Phase | Scope | Status |
 |---|---|:--:|
 | 1 | Foundation — auth, roles, schema, RLS, deployment | ✅ Done |
 | 2 | Core training — enrolment, roadmap, modules, quizzes, advisor dashboard | ✅ Done |
-| 3 | Attendance — daily marking, history, audit trail, make-up tasks | ⬜ |
-| 4 | Practical development — scripts, concepts, rubrics, coaching, fieldwork | ⬜ |
-| 5 | Reporting & readiness — reports, final assessments, readiness decision | ⬜ |
-| 6 | Content authoring — the 30 days of seed content | ⬜ |
+| 3 | Attendance — daily marking, history, audit trail, make-up tasks | ✅ Done |
+| 4 | Practical development — scripts, concepts, rubrics, coaching, fieldwork | ✅ Done |
+| 5 | Reporting & readiness — reports, final assessments, readiness decision | ✅ Done |
+| 6 | Content authoring — the 30 days of curriculum | 🟡 Partial — see below |
 
 ---
 
@@ -227,17 +228,57 @@ visible to show it.
 
 ## Seed content
 
-`supabase/seed/programme.sql` is **optional and idempotent**. It creates the 30-day
-programme skeleton plus real content for Days 1–3 so the progression engine can be walked
-end to end:
+The files in `supabase/seed/` are **optional and idempotent**, and must be applied in
+filename order — later files attach modules to programme days the first one creates:
 
 ```bash
-psql -d <database> -f supabase/seed/programme.sql
+for f in supabase/seed/*.sql; do psql -d <database> -f "$f"; done
 ```
 
-Production does not depend on it. A fresh deployment works with no content at all, and an
-administrator can author everything through the interface instead. The script creates no
-users and no credentials.
+| File | Contents |
+|---|---|
+| `01-programme.sql` | The 30-day programme skeleton, plus full content for Days 1–3 |
+| `02-scripts-concepts-rubrics.sql` | Six scripts, four concept presentations, the 12-criterion rubric |
+| `03-curriculum-protection.sql` | Days 4–5 (Hospitalisation, Personal Accident) |
+| `04-curriculum-foundations.sql` | Day 11 (Protection Comparison), Day 15 (CPF) |
+
+Everything lands as **Draft**. Nothing self-publishes.
+
+Production does not depend on any of it. A fresh deployment works with no content at all,
+and an administrator can author everything through the interface instead. The scripts
+create no users and no credentials.
+
+### Curriculum status
+
+| Day | Title | Content |
+|---|---|:--:|
+| 1–3 | Advisor foundations, planning fundamentals, fact-finding | ✅ |
+| 4–5 | Hospitalisation, Personal Accident | ✅ |
+| 6–10 | Term, Whole Life, Critical Illness, Cancer, CareShield | ⬜ |
+| 11 | Protection Comparison & Case Study | ✅ |
+| 12–14 | Endowment, ILP, Savings case study | ⬜ |
+| 15 | CPF, BRS, FRS & ERS | ✅ |
+| 16 | HDB & housing commitments | ⬜ |
+| 17–22 | Client conversation skills | ⬜ |
+| 23–27 | Practical application | ⬜ |
+| 28–30 | Final assessments and readiness review | ⬜ |
+
+The days marked ⬜ exist with their agreed titles and phases — an advisor reaching them sees
+"no modules published for this day yet" rather than an error, and `evaluate_day_completion`
+treats an unconfigured day as *incomplete* rather than complete, so nobody is advanced past
+missing content.
+
+Authored days follow the agreed product template and are written to **product category**,
+never to a named product or a quoted premium. Adding MadNuur Capital's actual product shelf
+is a publishing decision, not a code change.
+
+### ⚠️ CPF figures expire
+
+Day 15 carries the 2026 retirement sums — **BRS $110,200, FRS $220,400, ERS $440,800** —
+verified against cpf.gov.sg in July 2026. **These are revised every year.**
+
+They live in the module's `terminology` rows precisely so that updating them each January is
+a four-row edit in the admin interface rather than a rewrite of the lesson text.
 
 ## The working-day engine
 
