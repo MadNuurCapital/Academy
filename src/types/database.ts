@@ -311,3 +311,167 @@ export interface MarkLessonReadResult {
   module_complete: boolean;
   day_complete: boolean;
 }
+
+// ---------------------------------------------------------------------------
+// Phases 4 and 5 — practical development and readiness
+// ---------------------------------------------------------------------------
+
+export type AssessmentStatus = 'pending' | 'scored' | 'retry_required';
+export type CoachingStatus = 'scheduled' | 'completed' | 'cancelled';
+export type ActionStatus = 'open' | 'complete' | 'waived';
+export type MakeupStatus = 'outstanding' | 'complete' | 'waived';
+export type AdvisorFieldworkRole = 'observe' | 'assist' | 'present_section' | 'lead_supervised';
+
+export interface Script {
+  id: string;
+  title: string;
+  situation: string;
+  objective: string;
+  wording: string;
+  talking_points: string[];
+  variations: string[];
+  common_mistakes: string[];
+  compliance_note: string | null;
+  sequence: number;
+  version: number;
+  status: ContentStatus;
+  approved_at: string | null;
+}
+
+export interface ConceptPresentation {
+  id: string;
+  name: string;
+  purpose: string;
+  suitable_situations: string | null;
+  when_not_to_use: string | null;
+  /** Original artwork authored for ATLAS, not reproduced from elsewhere. */
+  diagram_svg: string | null;
+  steps: string[];
+  discovery_questions: string[];
+  transition: string | null;
+  common_mistakes: string[];
+  compliance_note: string | null;
+  is_required: boolean;
+  sequence: number;
+  status: ContentStatus;
+}
+
+export interface Rubric {
+  id: string;
+  name: string;
+  scope: string;
+  description: string | null;
+  pass_mark_pct: number;
+  is_active: boolean;
+}
+
+export interface RubricCriterion {
+  id: string;
+  rubric_id: string;
+  name: string;
+  description: string | null;
+  max_score: number;
+  sequence: number;
+}
+
+export interface PracticalAssessment {
+  id: string;
+  enrolment_id: string;
+  module_id: string | null;
+  rubric_id: string;
+  title: string;
+  status: AssessmentStatus;
+  assessed_by: string | null;
+  assessed_at: string | null;
+  total_score: number | null;
+  max_score: number | null;
+  passed: boolean | null;
+  feedback: string | null;
+  is_final: boolean;
+  advisor_acknowledged_at: string | null;
+  attempt_no: number;
+  created_at: string;
+}
+
+export interface PracticalScore {
+  id: string;
+  assessment_id: string;
+  criterion_id: string;
+  score: number;
+  comment: string | null;
+}
+
+/**
+ * Note what is absent: there is no `private_notes` field. Candid staff
+ * observations live in a separate table advisors have no policy on, so they
+ * never reach the client for an advisor at all.
+ */
+export interface CoachingSession {
+  id: string;
+  advisor_id: string;
+  manager_id: string;
+  scheduled_at: string;
+  topic: string;
+  reason: string | null;
+  preparation: string | null;
+  current_challenge: string | null;
+  observed_behaviour: string | null;
+  strengths: string | null;
+  improvement_areas: string | null;
+  supporting_evidence: string | null;
+  follow_up_date: string | null;
+  status: CoachingStatus;
+  outcome: string | null;
+  advisor_acknowledged_at: string | null;
+  completed_at: string | null;
+}
+
+export interface CoachingAction {
+  id: string;
+  session_id: string;
+  description: string;
+  due_date: string | null;
+  is_required: boolean;
+  status: ActionStatus;
+  completed_at: string | null;
+}
+
+/** No column for client identity — only the appointment category. */
+export interface FieldworkRecord {
+  id: string;
+  advisor_id: string;
+  manager_id: string;
+  session_date: string;
+  appointment_category: string;
+  is_simulated: boolean;
+  advisor_role: AdvisorFieldworkRole;
+  skills_observed: string[];
+  concept_presented: string | null;
+  product_category: string | null;
+  strengths: string | null;
+  improvement_areas: string | null;
+  manager_comments: string | null;
+  advisor_reflection: string | null;
+  follow_up_action: string | null;
+  follow_up_due: string | null;
+  rating: number | null;
+  readiness_recommendation: string | null;
+  next_requirement: string | null;
+}
+
+export interface ReadinessReview {
+  id: string;
+  enrolment_id: string;
+  manager_id: string;
+  decided_at: string;
+  outcome: ReadinessOutcome;
+  attendance_pct: number | null;
+  modules_complete: number | null;
+  modules_required: number | null;
+  quizzes_passed: number | null;
+  strengths: string | null;
+  development_areas: string | null;
+  notes: string | null;
+  blockers_overridden: unknown;
+  override_reason: string | null;
+}

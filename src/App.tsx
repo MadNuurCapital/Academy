@@ -23,6 +23,17 @@ import { EnrolPage } from '@/pages/manager/EnrolPage';
 import { TodayAttendancePage } from '@/pages/manager/TodayAttendancePage';
 import { AttendanceHistoryPage } from '@/pages/manager/AttendanceHistoryPage';
 import { MyAttendancePage } from '@/pages/advisor/MyAttendancePage';
+import { ScriptsPage, ScriptDetailPage } from '@/pages/advisor/ScriptsPage';
+import { ConceptsPage } from '@/pages/advisor/ConceptsPage';
+import { CoachingPage, CoachingDetailPage } from '@/pages/advisor/CoachingPage';
+import { FieldworkPage } from '@/pages/advisor/FieldworkPage';
+import { FeedbackPage } from '@/pages/advisor/FeedbackPage';
+import { NotificationsPage } from '@/pages/advisor/NotificationsPage';
+import { ReviewQueuePage, ScorePracticalPage } from '@/pages/manager/ReviewQueuePage';
+import { CoachingManagePage, ScheduleCoachingPage } from '@/pages/manager/CoachingManagePage';
+import { RecordFieldworkPage } from '@/pages/manager/FieldworkManagePage';
+import { ReadinessPage } from '@/pages/manager/ReadinessPage';
+import { ReportsPage } from '@/pages/manager/ReportsPage';
 import { SettingsPage } from '@/pages/admin/SettingsPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
 import { RoleHomeRedirect } from '@/pages/RoleHomeRedirect';
@@ -77,15 +88,15 @@ export function App() {
                 <Route path="/lesson/:lessonId" element={<LessonPage />} />
                 <Route path="/quiz/:quizId" element={<QuizPage />} />
                 <Route path="/attendance" element={<MyAttendancePage />} />
-                <Route path="/scripts" element={<PlaceholderPage title="Script library" phase="Phase 4" />} />
-                <Route path="/scripts/:scriptId" element={<PlaceholderPage title="Script" phase="Phase 4" />} />
-                <Route path="/concepts" element={<PlaceholderPage title="Concept presentations" phase="Phase 4" />} />
-                <Route path="/coaching" element={<PlaceholderPage title="My coaching" phase="Phase 4" />} />
-                <Route path="/coaching/:sessionId" element={<PlaceholderPage title="Coaching session" phase="Phase 4" />} />
-                <Route path="/fieldwork" element={<PlaceholderPage title="Joint fieldwork" phase="Phase 4" />} />
-                <Route path="/feedback" element={<PlaceholderPage title="Feedback" phase="Phase 4" />} />
+                <Route path="/scripts" element={<ScriptsPage />} />
+                <Route path="/scripts/:scriptId" element={<ScriptDetailPage />} />
+                <Route path="/concepts" element={<ConceptsPage />} />
+                <Route path="/coaching" element={<CoachingPage />} />
+                <Route path="/coaching/:sessionId" element={<CoachingDetailPage />} />
+                <Route path="/fieldwork" element={<FieldworkPage />} />
+                <Route path="/feedback" element={<FeedbackPage />} />
                 <Route path="/progress" element={<ProgressPage />} />
-                <Route path="/notifications" element={<PlaceholderPage title="Notifications" phase="Phase 4" />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
               </Route>
             </Route>
@@ -99,14 +110,14 @@ export function App() {
                 <Route path="/manage/advisors" element={<AdvisorListPage />} />
                 <Route path="/manage/advisors/:advisorId" element={<AdvisorDetailPage />} />
                 <Route path="/manage/enrol" element={<EnrolPage />} />
-                <Route path="/manage/reviews" element={<PlaceholderPage title="Review queue" phase="Phase 4" />} />
-                <Route path="/manage/reviews/:assessmentId" element={<PlaceholderPage title="Score a practical" phase="Phase 4" />} />
-                <Route path="/manage/coaching" element={<PlaceholderPage title="Coaching" phase="Phase 4" />} />
-                <Route path="/manage/coaching/new" element={<PlaceholderPage title="Schedule coaching" phase="Phase 4" />} />
-                <Route path="/manage/fieldwork" element={<PlaceholderPage title="Joint fieldwork" phase="Phase 4" />} />
-                <Route path="/manage/fieldwork/new" element={<PlaceholderPage title="Record fieldwork" phase="Phase 4" />} />
-                <Route path="/manage/readiness/:enrolmentId" element={<PlaceholderPage title="Readiness review" phase="Phase 5" />} />
-                <Route path="/manage/reports" element={<PlaceholderPage title="Reports" phase="Phase 5" />} />
+                <Route path="/manage/reviews" element={<ReviewQueuePage />} />
+                <Route path="/manage/reviews/:assessmentId" element={<ScorePracticalPage />} />
+                <Route path="/manage/coaching" element={<CoachingManagePage />} />
+                <Route path="/manage/coaching/new" element={<ScheduleCoachingPage />} />
+                <Route path="/manage/fieldwork" element={<RecordFieldworkPage />} />
+                <Route path="/manage/fieldwork/new" element={<RecordFieldworkPage />} />
+                <Route path="/manage/readiness/:enrolmentId" element={<ReadinessPage />} />
+                <Route path="/manage/reports" element={<ReportsPage />} />
               </Route>
             </Route>
 

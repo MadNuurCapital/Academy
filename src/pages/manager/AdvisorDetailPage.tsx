@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, Lock, Unlock, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, ClipboardCheck, Lock, Unlock, XCircle } from 'lucide-react';
 import { useAllAdvisors, useEnrolmentDays, useManagerUnlockDay, today } from '@/api/enrolments';
 import { useAllQuizAttempts } from '@/api/quizzes';
 import { usePublicHolidays, useSettings } from '@/api/settings';
@@ -160,6 +160,14 @@ export function AdvisorDetailPage() {
               </CardBody>
             </Card>
           )}
+
+          <Link
+            to={`/manage/readiness/${enrolment.id}`}
+            className="flex min-h-[44px] items-center justify-center gap-2 rounded-md bg-accent px-4 text-sm font-medium text-accent-foreground hover:bg-accent/90"
+          >
+            <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
+            Open readiness review
+          </Link>
 
           <Card>
             <CardHeader>

@@ -683,4 +683,267 @@ select pg_temp.assert_eq(
   public.attendance_pending_for('2026-07-25')::bigint,
   0, 'nothing is pending on a Saturday, so the reminder stays quiet');
 
+-- ===========================================================================
+-- PHASES 4 AND 5 — coaching privacy, assessment and the readiness decision
+-- ===========================================================================
+
+select pg_temp.act_as_owner();
+
+-- A clean advisor for these checks. Bob was granted the manager role earlier in
+-- this file by the "admin can grant a role" assertion, so he is no longer a
+-- valid stand-in for "some other advisor" — using him here would test nothing.
+\set carol '55555555-5555-5555-5555-555555555555'
+
+insert into auth.users (id, email) values (:'carol', 'carol.rls@example.test');
+insert into public.user_roles (user_id, role) values (:'carol', 'advisor');
+insert into public.enrolments (advisor_id, template_id, start_date, target_end_date)
+values (:'carol', :'template', '2026-08-03', '2026-09-11');
+
+insert into public.rubrics (id, name, scope, pass_mark_pct)
+values ('0b000000-0000-4000-8000-000000000001', 'Client conversation', 'practical', 70);
+
+insert into public.rubric_criteria (id, rubric_id, name, max_score, sequence) values
+  ('0b000000-0000-4000-8000-000000000011', '0b000000-0000-4000-8000-000000000001', 'Clarity', 5, 1),
+  ('0b000000-0000-4000-8000-000000000012', '0b000000-0000-4000-8000-000000000001', 'Listening', 5, 2);
+
+insert into public.practical_assessments (id, enrolment_id, rubric_id, title)
+select '0b000000-0000-4000-8000-000000000021', e.id, '0b000000-0000-4000-8000-000000000001',
+       'Fact-finding role-play'
+from public.enrolments e where e.advisor_id = :'alice';
+
+insert into public.coaching_sessions (id, advisor_id, manager_id, scheduled_at, topic)
+values ('0b000000-0000-4000-8000-000000000031', :'alice', :'manager', now(), 'First appointment nerves');
+
+insert into public.coaching_private_notes (session_id, advisor_id, author_id, note)
+values ('0b000000-0000-4000-8000-000000000031', :'alice', :'manager',
+        'Struggles badly under pressure. Watch closely before any real client work.');
+
+insert into public.coaching_actions (session_id, description, is_required)
+values ('0b000000-0000-4000-8000-000000000031', 'Re-read the Day 3 fact-finding lesson', true);
+
+insert into public.fieldwork_records (advisor_id, manager_id, session_date, appointment_category, advisor_role)
+values (:'alice', :'manager', '2026-07-28', 'First appointment', 'observe');
+
+-- ---------------------------------------------------------------------------
+-- Candid notes are unreachable, including by their subject
+-- ---------------------------------------------------------------------------
+
+select pg_temp.act_as(:'alice');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.coaching_private_notes),
+  0, 'advisor cannot read private coaching notes at all');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.coaching_private_notes where advisor_id = :'alice'),
+  0, 'advisor cannot read private notes written about themselves');
+
+-- The rest of the session must remain visible, or an advisor could not see
+-- their own coaching.
+select pg_temp.assert_eq(
+  (select count(*) from public.coaching_sessions),
+  1, 'advisor can read their own coaching session');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.coaching_actions),
+  1, 'advisor can read their own agreed actions');
+
+do $$
+begin
+  begin
+    insert into public.coaching_private_notes (session_id, advisor_id, note)
+    values ('0b000000-0000-4000-8000-000000000031',
+            '11111111-1111-1111-1111-111111111111', 'I am doing fine');
+    raise exception 'FAIL: advisor wrote a private coaching note';
+  exception when insufficient_privilege or check_violation then
+    raise notice 'pass: advisor cannot write a private coaching note';
+  end;
+end;
+$$;
+
+select pg_temp.act_as(:'carol');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.coaching_sessions),
+  0, 'coaching is never visible to another advisor');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.fieldwork_records),
+  0, 'fieldwork is never visible to another advisor');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.practical_assessments),
+  0, 'another advisor''s practical assessments are not visible');
+
+select pg_temp.act_as(:'manager');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.coaching_private_notes),
+  1, 'manager can read private coaching notes');
+
+-- ---------------------------------------------------------------------------
+-- Scoring is a manager act, and demands written feedback
+-- ---------------------------------------------------------------------------
+
+select pg_temp.act_as(:'alice');
+
+do $$
+begin
+  begin
+    perform public.score_practical('0b000000-0000-4000-8000-000000000021',
+      '[{"criterion_id":"0b000000-0000-4000-8000-000000000011","score":5}]'::jsonb,
+      'I did very well');
+    raise exception 'FAIL: advisor scored their own practical assessment';
+  exception when raise_exception then
+    if position('manager or administrator' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: advisor cannot score their own practical assessment';
+  end;
+end;
+$$;
+
+with attempt as (
+  update public.practical_assessments set passed = true, total_score = 10 returning 1
+)
+select pg_temp.assert_eq((select count(*) from attempt), 0,
+  'advisor cannot mark their own practical assessment as passed');
+
+select pg_temp.act_as(:'manager');
+
+do $$
+begin
+  begin
+    perform public.score_practical('0b000000-0000-4000-8000-000000000021',
+      '[{"criterion_id":"0b000000-0000-4000-8000-000000000011","score":5}]'::jsonb, '   ');
+    raise exception 'FAIL: a practical was scored with no written feedback';
+  exception when raise_exception then
+    if position('feedback is required' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: scoring a practical requires written feedback';
+  end;
+end;
+$$;
+
+-- 10 of 10 across both criteria: comfortably above the 70% rubric pass mark.
+select public.score_practical(
+  '0b000000-0000-4000-8000-000000000021',
+  '[{"criterion_id":"0b000000-0000-4000-8000-000000000011","score":5},
+    {"criterion_id":"0b000000-0000-4000-8000-000000000012","score":5}]'::jsonb,
+  'Strong structure and genuinely good listening. Slow down when summarising.');
+
+select pg_temp.act_as_owner();
+
+select pg_temp.assert_eq(
+  (select total_score from public.practical_assessments
+   where id = '0b000000-0000-4000-8000-000000000021'),
+  10, 'the total is computed from the criterion scores, not supplied by the client');
+
+-- A score for a criterion belonging to another rubric must be ignored rather
+-- than silently inflating the total.
+--
+-- Rubrics are administered by admins, not managers, so the fixture is created
+-- as the owner. A manager attempting this directly is checked separately below.
+select pg_temp.act_as_owner();
+
+insert into public.rubrics (id, name) values ('0b000000-0000-4000-8000-000000000002', 'Other rubric');
+insert into public.rubric_criteria (id, rubric_id, name, max_score)
+values ('0b000000-0000-4000-8000-000000000013', '0b000000-0000-4000-8000-000000000002', 'Unrelated', 5);
+
+select pg_temp.act_as(:'manager');
+
+do $$
+begin
+  begin
+    insert into public.rubrics (name) values ('Manager-made rubric');
+    raise exception 'FAIL: a manager created a scoring rubric';
+  exception when insufficient_privilege or check_violation then
+    raise notice 'pass: rubrics are administered by admins, not managers';
+  end;
+end;
+$$;
+
+select public.score_practical(
+  '0b000000-0000-4000-8000-000000000021',
+  '[{"criterion_id":"0b000000-0000-4000-8000-000000000011","score":5},
+    {"criterion_id":"0b000000-0000-4000-8000-000000000013","score":5}]'::jsonb,
+  'Re-scored.');
+
+select pg_temp.act_as_owner();
+
+select pg_temp.assert_eq(
+  (select total_score from public.practical_assessments
+   where id = '0b000000-0000-4000-8000-000000000021'),
+  5, 'a criterion from a different rubric cannot inflate the score');
+
+-- ---------------------------------------------------------------------------
+-- Readiness
+-- ---------------------------------------------------------------------------
+
+select pg_temp.act_as(:'alice');
+
+do $$
+declare
+  target uuid;
+begin
+  select id into target from public.enrolments
+  where advisor_id = '11111111-1111-1111-1111-111111111111';
+  begin
+    perform public.record_readiness_decision(target, 'ready_for_supervised_fieldwork');
+    raise exception 'FAIL: advisor recorded their own readiness decision';
+  exception when raise_exception then
+    if position('manager or administrator' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: advisor cannot record their own readiness decision';
+  end;
+end;
+$$;
+
+select pg_temp.act_as(:'manager');
+
+do $$
+declare
+  target uuid;
+begin
+  select id into target from public.enrolments
+  where advisor_id = '11111111-1111-1111-1111-111111111111';
+  begin
+    perform public.record_readiness_decision(target, 'ready_for_supervised_fieldwork');
+    raise exception 'FAIL: a ready outcome was recorded with unmet blockers and no reason';
+  exception when raise_exception then
+    if position('requires a reason' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: a ready outcome with unmet requirements demands a reason';
+  end;
+end;
+$$;
+
+-- The honest outcomes for an advisor who is not there yet need no override.
+select public.record_readiness_decision(
+  (select id from public.enrolments where advisor_id = :'alice'),
+  'additional_training_required', null, 'More work on fact-finding');
+
+select pg_temp.act_as_owner();
+
+select pg_temp.assert_eq(
+  (select count(*) from public.readiness_reviews where outcome = 'additional_training_required'),
+  1, 'additional training required is recordable without an override');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.audit_log where action = 'record_readiness_decision'),
+  1, 'the readiness decision is written to the audit log');
+
+-- Attendance is reported but must never appear as a blocker.
+select pg_temp.act_as(:'manager');
+
+select pg_temp.assert_eq(
+  (select count(*)
+   from jsonb_array_elements(
+     public.evaluate_completion_requirements(
+       (select id from public.enrolments where advisor_id = '11111111-1111-1111-1111-111111111111')
+     ) -> 'requirements') r
+   where r ->> 'key' = 'attendance' and (r ->> 'blocks')::boolean),
+  0, 'attendance is reported but never blocks completion');
+
+select pg_temp.act_as(:'alice');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.readiness_reviews),
+  1, 'advisor can read the readiness decision recorded about them');
+
 rollback;
