@@ -31,6 +31,14 @@ pending compliance sign-off.
 | 5 | Reporting & readiness — reports, final assessments, readiness decision | ✅ Done |
 | 6 | Content authoring — the 30 days of curriculum | ✅ Done |
 
+**The administrator screens are not built.** `/admin/content`, `/admin/users`,
+`/admin/holidays`, `/admin/scripts`, `/admin/concepts` and `/admin/audit` render a
+placeholder; only `/admin/settings` is real. Those jobs — publishing content, creating
+accounts, loading public holidays — are done with SQL in the Supabase dashboard, which is
+workable because of how rarely they happen: publishing once, holidays once a year, accounts
+around twenty a year. **[`LAUNCH.md`](LAUNCH.md) is the runbook**, with the exact SQL for
+each, all of it tested against the real schema.
+
 ---
 
 ## Quick start
@@ -91,16 +99,19 @@ npm run db:types         # regenerate src/types/database.ts from the real schema
 There are no hard-coded users and no seeded credentials. Bootstrap the first admin by hand:
 
 1. In the Supabase dashboard, go to **Authentication → Users → Add user**. Enter an email
-   and password, and tick *Auto Confirm User*.
+   and password, tick *Auto Confirm User*, and set `{"full_name": "Your Name"}` under User
+   Metadata — without it the profile falls back to the part of the email before the `@`.
 2. A `profiles` row is created automatically by a trigger.
 3. Grant the admin role — **SQL Editor**, replacing the email:
 
 ```sql
 insert into public.user_roles (user_id, role)
-select id, 'admin' from public.profiles where email = 'you@example.com';
+select id, 'admin' from public.profiles where email = 'you@example.com'
+on conflict (user_id, role) do nothing;
 ```
 
-Sign in. Every subsequent user is created through the application.
+Sign in. **Every subsequent account is created the same way** — the dashboard, then a role
+grant. There is no user-management screen; see [`LAUNCH.md`](LAUNCH.md) step 8.
 
 ### 4. Configure auth redirect URLs
 
