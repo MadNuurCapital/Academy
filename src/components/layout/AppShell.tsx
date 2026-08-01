@@ -4,6 +4,7 @@ import { LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '@/auth/useAuth';
 import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/Button';
+import { Brand } from '@/components/ui/Brand';
 
 export interface NavItem {
   to: string;
@@ -139,16 +140,6 @@ export function AppShell({ items, sectionLabel }: { items: NavItem[]; sectionLab
           ))}
         </nav>
       )}
-    </div>
-  );
-}
-
-function Brand() {
-  return (
-    <div className="flex items-baseline gap-2">
-      {/* Placeholder wordmark. Swap for the MadNuur Capital logo when supplied. */}
-      <span className="text-lg font-bold tracking-tight text-foreground">ATLAS</span>
-      <span className="text-sm font-medium text-muted-foreground">Academy</span>
     </div>
   );
 }

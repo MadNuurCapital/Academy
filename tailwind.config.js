@@ -5,7 +5,7 @@ export default {
     extend: {
       colors: {
         // All values are CSS custom properties defined in src/styles/theme.css.
-        // Swapping in MadNuur Capital's brand palette means editing that one file.
+        // Swapping in the firm's brand palette means editing that one file.
         border: 'rgb(var(--colour-border) / <alpha-value>)',
         input: 'rgb(var(--colour-input) / <alpha-value>)',
         ring: 'rgb(var(--colour-ring) / <alpha-value>)',

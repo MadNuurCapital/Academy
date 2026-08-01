@@ -266,7 +266,7 @@ create no users and no credentials.
 | 28–30 | Assessment & Readiness | ✅ |
 
 Written to **product category** — no insurer, no premium, no policy wording, since those
-vary and would be wrong within months. Adding MadNuur Capital's actual product shelf is a
+vary and would be wrong within months. Adding the firm's actual product shelf is a
 publishing decision, not a code change.
 
 Deliberately absent: **Indexed Universal Life**, judged too advanced for a 30-day
@@ -380,9 +380,14 @@ deployment:
 
 ## Branding
 
+The wordmark lives in one place, **`src/components/ui/Brand.tsx`** — `ATLAS Academy` with
+`Integrated Barakah Wealth Advisory` beneath it. Both the app shell and the login screens
+render that same component, so they cannot drift apart, and a real logo can replace the
+markup there without touching either call site.
+
 All colours are CSS custom properties in **`src/styles/theme.css`** — the only file to edit
-when the MadNuur Capital palette arrives. The current palette is a restrained placeholder:
-deep slate with a single teal accent.
+when the firm's palette arrives. The current palette is a restrained placeholder: deep
+slate with a single teal accent.
 
 Mobile and desktop are both first-class. Advisors read lessons and check scripts on a
 phone; managers mark attendance and score on a laptop. Sidebar on desktop, bottom tab bar

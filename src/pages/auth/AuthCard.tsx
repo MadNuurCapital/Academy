@@ -1,3 +1,5 @@
+import { Brand } from '@/components/ui/Brand';
+
 export function AuthCard({
   title,
   subtitle,
@@ -11,11 +13,8 @@ export function AuthCard({
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <div className="flex items-baseline justify-center gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">ATLAS</span>
-            <span className="text-base font-medium text-muted-foreground">Academy</span>
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <Brand size="lg" />
+          <p className="mt-2 text-[11px] text-muted-foreground">
             Advisor Training, Learning &amp; Assessment System
           </p>
         </div>

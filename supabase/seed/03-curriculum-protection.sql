@@ -5,8 +5,8 @@
 -- Written to PRODUCT CATEGORY, never to a named product. No insurer is
 -- mentioned, no premium is quoted and no specific policy wording is described,
 -- because those vary by insurer and by year and would be wrong within months.
--- MadNuur Capital's actual product shelf is layered on top of this by whoever
--- publishes it.
+-- Integrated Barakah Wealth Advisory's actual product shelf is layered on top of
+-- this by whoever publishes it.
 --
 -- Each module follows the agreed product template: what need it addresses, who
 -- may benefit, who may not, how it works, benefits, limitations, exclusions,
