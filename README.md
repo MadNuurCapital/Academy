@@ -18,9 +18,9 @@ works through lessons and quizzes with the 80% gate enforced by the database; at
 marked daily in under a minute; coaching, fieldwork and practical assessment are recorded;
 and the programme ends in a readiness decision with an explicit blocker checklist.
 
-**Curriculum authoring is partial.** All 30 programme days exist with their agreed titles
-and phases, and 7 of them carry full published-ready content. The rest need authoring —
-see *Curriculum status* below.
+**All 30 days are written.** 30 modules, 37 lessons, 144 quiz questions, 6 scripts, 4
+concept presentations with original diagrams, and the 12-criterion rubric — all as Draft,
+pending compliance sign-off.
 
 | Phase | Scope | Status |
 |---|---|:--:|
@@ -29,7 +29,7 @@ see *Curriculum status* below.
 | 3 | Attendance — daily marking, history, audit trail, make-up tasks | ✅ Done |
 | 4 | Practical development — scripts, concepts, rubrics, coaching, fieldwork | ✅ Done |
 | 5 | Reporting & readiness — reports, final assessments, readiness decision | ✅ Done |
-| 6 | Content authoring — the 30 days of curriculum | 🟡 Partial — see below |
+| 6 | Content authoring — the 30 days of curriculum | ✅ Done |
 
 ---
 
@@ -239,8 +239,14 @@ for f in supabase/seed/*.sql; do psql -d <database> -f "$f"; done
 |---|---|
 | `01-programme.sql` | The 30-day programme skeleton, plus full content for Days 1–3 |
 | `02-scripts-concepts-rubrics.sql` | Six scripts, four concept presentations, the 12-criterion rubric |
-| `03-curriculum-protection.sql` | Days 4–5 (Hospitalisation, Personal Accident) |
-| `04-curriculum-foundations.sql` | Day 11 (Protection Comparison), Day 15 (CPF) |
+| `03-curriculum-protection.sql` | Days 4–5 — Hospitalisation, Personal Accident |
+| `04-curriculum-foundations.sql` | Day 11 — Protection Comparison; Day 15 — CPF |
+| `05-curriculum-protection-2.sql` | Days 6–10 — Term, Whole Life, Critical Illness, Cancer, CareShield |
+| `06-curriculum-savings.sql` | Days 12–14, 16 — Endowment, ILP, case study, HDB |
+| `07-curriculum-conversation.sql` | Days 17–22 — Prospecting through objection handling |
+| `08-curriculum-practical.sql` | Days 23–27 — Role-plays, case study, joint fieldwork |
+| `09-curriculum-assessment.sql` | Days 28–30 — Final assessments and readiness review |
+| `99-publish-all.sql` | Optional bulk publish, **after** compliance review |
 
 Everything lands as **Draft**. Nothing self-publishes.
 
@@ -248,29 +254,42 @@ Production does not depend on any of it. A fresh deployment works with no conten
 and an administrator can author everything through the interface instead. The scripts
 create no users and no credentials.
 
-### Curriculum status
+### Curriculum
 
-| Day | Title | Content |
+| Days | Phase | Content |
 |---|---|:--:|
-| 1–3 | Advisor foundations, planning fundamentals, fact-finding | ✅ |
-| 4–5 | Hospitalisation, Personal Accident | ✅ |
-| 6–10 | Term, Whole Life, Critical Illness, Cancer, CareShield | ⬜ |
-| 11 | Protection Comparison & Case Study | ✅ |
-| 12–14 | Endowment, ILP, Savings case study | ⬜ |
-| 15 | CPF, BRS, FRS & ERS | ✅ |
-| 16 | HDB & housing commitments | ⬜ |
-| 17–22 | Client conversation skills | ⬜ |
-| 23–27 | Practical application | ⬜ |
-| 28–30 | Final assessments and readiness review | ⬜ |
+| 1–3 | Advisor Foundations | ✅ |
+| 4–11 | Protection Knowledge | ✅ |
+| 12–16 | Singapore Financial Foundations | ✅ |
+| 17–22 | Client Conversation Skills | ✅ |
+| 23–27 | Practical Application | ✅ |
+| 28–30 | Assessment & Readiness | ✅ |
 
-The days marked ⬜ exist with their agreed titles and phases — an advisor reaching them sees
-"no modules published for this day yet" rather than an error, and `evaluate_day_completion`
-treats an unconfigured day as *incomplete* rather than complete, so nobody is advanced past
-missing content.
+Written to **product category** — no insurer, no premium, no policy wording, since those
+vary and would be wrong within months. Adding MadNuur Capital's actual product shelf is a
+publishing decision, not a code change.
 
-Authored days follow the agreed product template and are written to **product category**,
-never to a named product or a quoted premium. Adding MadNuur Capital's actual product shelf
-is a publishing decision, not a code change.
+Deliberately absent: **Indexed Universal Life**, judged too advanced for a 30-day
+programme. CPF and HDB sit under Singapore Financial Foundations and are never described
+as insurance products. Day 18 is *Advisor Introduction & Value Pitch*, never a sales pitch.
+Objection handling is taught as understanding the concern, never as overcoming resistance.
+
+### Publishing
+
+Everything seeds as **Draft**, so advisors see nothing until it is published — and
+`evaluate_day_completion` treats a day with no published required module as *incomplete*,
+so nobody is advanced past unreviewed content.
+
+Publish module by module through the admin interface, which also produces the audit trail.
+For a demo or test environment, or for bulk publishing *after* a review has actually
+happened:
+
+```bash
+psql -d <database> -f supabase/seed/99-publish-all.sql
+```
+
+It is numbered 99 so a wholesale `seed/*.sql` loop runs it last, and so nobody applies it
+by accident.
 
 ### ⚠️ CPF figures expire
 
@@ -325,7 +344,7 @@ interface; a user who defeats them still cannot read a row the database policies
 
 ### Verified, not assumed
 
-`supabase/tests/rls.test.sql` asserts the policies against a real database — 44 checks
+`supabase/tests/rls.test.sql` asserts the policies against a real database — 78 checks
 covering read isolation, write restrictions, privilege escalation, draft-content
 visibility, notification scoping, and every route by which an advisor might defeat the quiz
 gate. Run with `npm run test:rls`; it exits non-zero if a migration widens access.

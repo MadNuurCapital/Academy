@@ -79,7 +79,7 @@ select
   'foundations',
   'The role, the responsibilities, and the standards you will be held to from your first client meeting onwards.',
   '["Explain the role of a financial advisor in plain language","Describe what happens before, during and after a client appointment","Recognise when a question is beyond your current competence"]'::jsonb,
-  45, true, 1, 'published'
+  45, true, 1, 'draft'
 from public.programme_days pd
 where pd.template_id = '0a715000-0000-4000-8000-000000000001' and pd.day_number = 1
 on conflict (id) do nothing;
@@ -277,7 +277,7 @@ select
   'foundations',
   'Protection, healthcare, emergency funds, savings, investment and retirement — what each is for, and the order they are usually addressed in.',
   '["Name the main areas of a financial plan","Explain why protection is usually addressed before investment","Distinguish a client need from a product"]'::jsonb,
-  40, true, 1, 'published'
+  40, true, 1, 'draft'
 from public.programme_days pd
 where pd.template_id = '0a715000-0000-4000-8000-000000000001' and pd.day_number = 2
 on conflict (id) do nothing;
@@ -355,7 +355,7 @@ select
   'foundations',
   'What to ask, how to ask it, and why a recommendation made before this point is not advice.',
   '["Gather income, expenses, assets, liabilities, dependants and existing cover","Ask permission before personal questions","Summarise a client''s position back to them accurately"]'::jsonb,
-  40, true, 1, 'published'
+  40, true, 1, 'draft'
 from public.programme_days pd
 where pd.template_id = '0a715000-0000-4000-8000-000000000001' and pd.day_number = 3
 on conflict (id) do nothing;
