@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '@/auth/useAuth';
 import { cn } from '@/lib/cn';
@@ -45,7 +45,7 @@ export function AppShell({ items, sectionLabel }: { items: NavItem[]; sectionLab
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/[0.07] bg-white/[0.03] backdrop-blur-xl lg:flex">
         <div className="flex h-[4.5rem] items-center border-b border-white/[0.07] px-5">
-          <Brand />
+          <HomeLink />
         </div>
         <nav aria-label={sectionLabel} className="flex-1 space-y-1 overflow-y-auto p-3">
           {items.map((item) => (
@@ -63,7 +63,7 @@ export function AppShell({ items, sectionLabel }: { items: NavItem[]; sectionLab
 
       {/* Mobile top bar */}
       <header className="sticky top-0 z-30 flex h-[4.5rem] items-center justify-between border-b border-white/[0.07] bg-background/80 px-4 backdrop-blur-xl lg:hidden">
-        <Brand />
+        <HomeLink />
         <button
           type="button"
           onClick={() => setIsMenuOpen((open) => !open)}
@@ -148,6 +148,29 @@ export function AppShell({ items, sectionLabel }: { items: NavItem[]; sectionLab
         </nav>
       )}
     </div>
+  );
+}
+
+/**
+ * The logo, as a link home.
+ *
+ * It points at "/" rather than at a role's dashboard directly, so RoleHomeRedirect
+ * stays the single place that decides where home is. An advisor lands on their
+ * day, a manager on their dashboard, an admin on Users.
+ *
+ * The visible text already reads "ATLAS Academy Integrated Barakah Wealth
+ * Advisory", which is a mouthful for a screen reader to announce as a
+ * destination, so the link carries its own shorter label.
+ */
+function HomeLink() {
+  return (
+    <Link
+      to="/"
+      aria-label="ATLAS Academy — go to my dashboard"
+      className="-mx-2 rounded-md px-2 py-1 transition-colors duration-150 hover:bg-white/[0.05]"
+    >
+      <Brand />
+    </Link>
   );
 }
 
