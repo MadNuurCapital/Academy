@@ -154,21 +154,21 @@ values
   'Do not use it with a client who already has a well-organised plan and a specific question — it will feel like being taught something they already know. Do not use it to imply they need a product in every pillar.',
   '<svg viewBox="0 0 480 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Four pillars of financial planning: Protection, Emergency Fund, Savings and Investment, Retirement, supporting a roof labelled Financial Security">
   <title>Four Pillars of Financial Planning</title>
-  <rect x="30" y="34" width="420" height="26" rx="4" fill="#1e293b"/>
+  <rect x="30" y="34" width="420" height="26" rx="4" fill="#082f4e"/>
   <text x="240" y="52" text-anchor="middle" fill="#f8fafc" font-family="sans-serif" font-size="14" font-weight="600">Financial Security</text>
   <g font-family="sans-serif" font-size="11" fill="#0f172a" text-anchor="middle">
-    <rect x="42" y="72" width="88" height="140" rx="4" fill="#0d9488" opacity="0.12" stroke="#0d9488"/>
+    <rect x="42" y="72" width="88" height="140" rx="4" fill="#0e558b" opacity="0.12" stroke="#0e558b"/>
     <text x="86" y="132" font-weight="600">Protection</text>
     <text x="86" y="150" font-size="9" fill="#64748b">If income stops</text>
-    <rect x="146" y="72" width="88" height="140" rx="4" fill="#0d9488" opacity="0.12" stroke="#0d9488"/>
+    <rect x="146" y="72" width="88" height="140" rx="4" fill="#0e558b" opacity="0.12" stroke="#0e558b"/>
     <text x="190" y="132" font-weight="600">Emergency</text>
     <text x="190" y="146" font-weight="600">Fund</text>
     <text x="190" y="164" font-size="9" fill="#64748b">If something breaks</text>
-    <rect x="250" y="72" width="88" height="140" rx="4" fill="#0d9488" opacity="0.12" stroke="#0d9488"/>
+    <rect x="250" y="72" width="88" height="140" rx="4" fill="#0e558b" opacity="0.12" stroke="#0e558b"/>
     <text x="294" y="126" font-weight="600">Savings &amp;</text>
     <text x="294" y="140" font-weight="600">Investment</text>
     <text x="294" y="158" font-size="9" fill="#64748b">To grow</text>
-    <rect x="354" y="72" width="88" height="140" rx="4" fill="#0d9488" opacity="0.12" stroke="#0d9488"/>
+    <rect x="354" y="72" width="88" height="140" rx="4" fill="#0e558b" opacity="0.12" stroke="#0e558b"/>
     <text x="398" y="132" font-weight="600">Retirement</text>
     <text x="398" y="150" font-size="9" fill="#64748b">When work stops</text>
   </g>
@@ -200,8 +200,8 @@ values
   <rect x="150" y="60" width="290" height="170" fill="#b91c1c" opacity="0.10" stroke="#b91c1c" stroke-dasharray="5 4"/>
   <text x="295" y="140" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="600" fill="#b91c1c">The gap</text>
   <text x="295" y="158" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#64748b">Years the household still needs support</text>
-  <line x1="70" y1="52" x2="440" y2="52" stroke="#1e293b" stroke-width="1.5"/>
-  <text x="255" y="44" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#1e293b">Monthly cost of running the household</text>
+  <line x1="70" y1="52" x2="440" y2="52" stroke="#0e558b" stroke-width="1.5"/>
+  <text x="255" y="44" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#0e558b">Monthly cost of running the household</text>
 </svg>',
   '["Ask what the household costs to run each month, and write the figure down","Ask what is available in accessible savings, and draw that as the first block","Convert it into months out loud, and let the number sit","Ask how long the household would need support for — until the youngest finishes school, usually","Draw that span. The gap between the two is the concept","Ask what they would want to happen in that gap. Do not answer for them"]'::jsonb,
   '["Roughly what does it cost to run your household each month?","What could you get hold of quickly if you needed it?","Who depends on your income, and for how many more years?","Has anyone in the family ever been through this?","What would you want to happen for them?"]'::jsonb,

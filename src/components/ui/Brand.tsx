@@ -62,13 +62,17 @@ export function Brand({ size = 'sm', className }: { size?: 'sm' | 'lg'; classNam
  * Colours come from --colour-brand and --colour-brand-accent, which exist so
  * the logo does not change if someone later retunes the interface accent.
  */
-export function BrandMark({ className }: { className?: string }) {
+export function BrandMark({ className, label }: { className?: string; label?: string }) {
   return (
     <svg
       viewBox="0 0 100 100"
       className={cn('shrink-0', className)}
-      role="img"
-      aria-label="ATLAS Academy"
+      /*
+       * Decorative by default. Inside the lockup the words "ATLAS Academy" sit
+       * right beside it, so labelling the mark too would have a screen reader
+       * announce the name twice. Pass `label` only when the mark stands alone.
+       */
+      {...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true })}
     >
       <rect x="0" y="0" width="21" height="21" className="fill-brand-accent" />
       <g className="fill-brand">
