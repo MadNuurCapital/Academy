@@ -125,13 +125,11 @@ account is created by hand.
 1. Dashboard → **Authentication → Users → Add user → Create new user**
 2. Enter your email and a password.
 3. Tick **Auto Confirm User** — without it you cannot sign in until you click an email link.
-4. Expand **User Metadata** and add:
-   ```json
-   { "full_name": "Your Name" }
-   ```
-   This matters. A trigger creates the matching profile row automatically, and if `full_name`
-   is missing it falls back to the part of your email before the `@` — so you would appear
-   throughout the app as "evo.inub". Set it for every account you create.
+4. **Create user.** That is everything. If you see a user-metadata box, ignore it.
+
+A trigger creates the matching profile row automatically. Because you did not supply a name,
+it falls back to the part of your email before the `@` — so you will appear as "evo.inub"
+until you fix it, which takes two clicks in **Admin → Users** once you are signed in.
 
 Then grant yourself the admin role. **SQL Editor**, replacing the email:
 
@@ -368,10 +366,17 @@ Then **Deploy site**. The first build takes two to three minutes.
 
 ## Step 9 — Create the managers and advisors
 
-This is the step you will repeat. Same as step 2:
+This is the step you will repeat — but only the account creation part. Everything else now
+lives in the app.
 
-1. **Authentication → Users → Add user**, tick Auto Confirm, set `full_name` in User Metadata.
-2. Grant the role:
+1. **Authentication → Users → Add user**. Email, password, tick **Auto Confirm User**, create.
+2. Sign in to ATLAS as an admin and open **Admin → Users**. The new person is in the list.
+   Set their name, and switch on Advisor, Manager or Admin. Roles are additive — one person
+   can be both.
+
+That is it. The SQL below is kept only for the case where you are setting up several people
+at once and would rather do it in one statement, or where you have somehow locked yourself
+out of the admin screen:
 
 ```sql
 -- One manager

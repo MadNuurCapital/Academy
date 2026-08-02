@@ -68,12 +68,15 @@ export function UsersPage() {
         <div className="text-sm">
           <p className="font-medium">New accounts start in Supabase</p>
           <p className="mt-1 text-muted-foreground">
-            Authentication → Users → Add user. Tick <em>Auto Confirm User</em> and set{' '}
-            <code className="rounded bg-white/[0.07] px-1 py-0.5 text-[13px]">
-              {'{"full_name": "Their Name"}'}
-            </code>{' '}
-            as user metadata. They appear here within a few seconds, and you give them a role
-            below. Creating the account itself needs a key that would be unsafe in a browser.
+            Authentication → Users → <strong>Add user</strong>. Email, password, and tick{' '}
+            <em>Auto Confirm User</em>. That is everything — ignore the user-metadata box if
+            you see one. They appear in this list within a few seconds, and you set their name
+            and role right here.
+          </p>
+          <p className="mt-2 text-muted-foreground">
+            Creating the account itself has to happen there rather than here: it needs a key
+            that bypasses every security policy in this system, and that key must never be
+            sent to a browser.
           </p>
         </div>
       </Panel>
