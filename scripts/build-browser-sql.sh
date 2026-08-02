@@ -54,12 +54,21 @@ def bundle(sources, outpath, title, n, total):
 migs = sorted(glob.glob('supabase/migrations/*.sql'))
 seeds = sorted(glob.glob('supabase/seed/0*.sql'))
 
+# The twelve migrations dated 20260731 are the launch baseline: bundles 01 and
+# 02 are what a BRAND NEW project pastes. Anything added after that gets its own
+# file, because re-pasting a baseline bundle over a database that already has it
+# fails on the first `create table` — the baseline is not idempotent and is not
+# meant to be. An existing project applies only the update files it has not run.
+BASELINE_PREFIX = '20260731'
+baseline = [m for m in migs if os.path.basename(m).startswith(BASELINE_PREFIX)]
+updates = [m for m in migs if not os.path.basename(m).startswith(BASELINE_PREFIX)]
+
 # Split only at file boundaries, keeping each bundle comfortably under 100 KB —
 # large enough to keep the number of pastes small, small enough that a browser
 # text editor does not struggle with it.
 plan = [
-    (migs[:7],   'supabase/browser/01-schema-part-1.sql',         'Schema, part 1 of 2'),
-    (migs[7:],   'supabase/browser/02-schema-part-2.sql',         'Schema, part 2 of 2'),
+    (baseline[:7], 'supabase/browser/01-schema-part-1.sql',       'Schema, part 1 of 2'),
+    (baseline[7:], 'supabase/browser/02-schema-part-2.sql',       'Schema, part 2 of 2'),
     (seeds[:2],  'supabase/browser/03-programme-and-scripts.sql', 'Programme, scripts, concepts and rubrics'),
     (seeds[2:5], 'supabase/browser/04-curriculum-part-1.sql',     'Curriculum, part 1 of 3'),
     (seeds[5:7], 'supabase/browser/05-curriculum-part-2.sql',     'Curriculum, part 2 of 3'),
@@ -118,6 +127,30 @@ select count(*) as migrations_recorded from supabase_migrations.schema_migration
 out = 'supabase/browser/07-record-migrations.sql'
 open(out, 'w').write(ledger)
 print('%-46s %6.1f KB  (%d migrations recorded)' % (out, os.path.getsize(out) / 1024, len(migs)))
+
+# Post-launch migrations, one file each, numbered from 10 so they sort after
+# everything a fresh install runs. An existing project applies these; a new one
+# already has them from bundles 01 and 02.
+UPDATE_HEADER = '''-- =========================================================================
+-- ATLAS Academy — update {n}: {name}
+--
+-- FOR AN EXISTING PROJECT. Paste into the Supabase SQL Editor and Run.
+--
+-- A brand new project does not need this — bundles 01 and 02 already contain
+-- it. Applying it twice is harmless; the file drops and recreates rather than
+-- assuming what is there.
+--
+-- Source: {src}
+-- This file is generated. See scripts/build-browser-sql.sh
+-- =========================================================================
+
+'''
+
+for n, src in enumerate(updates, start=10):
+    name = os.path.basename(src)[:-4].partition('_')[2].replace('_', ' ')
+    out = 'supabase/browser/%d-update-%s.sql' % (n, os.path.basename(src)[:-4].partition('_')[2].replace('_', '-'))
+    open(out, 'w').write(UPDATE_HEADER.format(n=n - 9, name=name, src=src) + open(src).read())
+    print('%-46s %6.1f KB  (update, existing projects only)' % (out, os.path.getsize(out) / 1024))
 
 # 08-repair.sql is hand-written rather than generated — it is a diagnostic, not
 # a concatenation — so it is only reported here, to keep the listing complete.

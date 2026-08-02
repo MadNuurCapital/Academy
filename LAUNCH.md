@@ -189,6 +189,22 @@ carry guards that stop with a clear message rather than leaving the database hal
 
 ---
 
+## Updates after you have launched
+
+New features sometimes add to the database. Those arrive as their own files, numbered from
+10, and are **only for a project that already exists** — a brand new one gets them from
+bundles 01 and 02.
+
+| File | What it adds |
+|---|---|
+| `supabase/browser/10-update-enrolment-actions.sql` | Pause, resume and withdraw an enrolment |
+
+Paste and run each one you have not run yet. They are safe to run twice, and they never
+touch the bundles you have already applied.
+
+---
+
+
 ## Step 5 — Load the public holidays
 
 **Nothing is seeded here, and the programme will be wrong without it.** The entire schedule

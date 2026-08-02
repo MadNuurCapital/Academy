@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, ClipboardCheck, Lock, Unlock, XCircle } from 'lucide-react';
 import { useAllAdvisors, useEnrolmentDays, useManagerUnlockDay, today } from '@/api/enrolments';
+import { EnrolmentControls } from '@/components/manager/EnrolmentControls';
 import { useAllQuizAttempts } from '@/api/quizzes';
 import { usePublicHolidays, useSettings } from '@/api/settings';
 import { Button } from '@/components/ui/Button';
@@ -139,6 +140,8 @@ export function AdvisorDetailPage() {
               )}
             </CardBody>
           </Card>
+
+          <EnrolmentControls enrolment={enrolment} />
 
           {failedAttempts.length > 0 && (
             <Card>

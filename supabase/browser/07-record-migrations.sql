@@ -38,8 +38,9 @@ insert into supabase_migrations.schema_migrations (version, name) values
   ('20260731000900', 'attendance'),
   ('20260731001000', 'practical'),
   ('20260731001100', 'practical_rls'),
-  ('20260731001200', 'readiness')
+  ('20260731001200', 'readiness'),
+  ('20260802000100', 'enrolment_actions')
 on conflict (version) do nothing;
 
--- Expect 12 rows.
+-- Expect 13 rows.
 select count(*) as migrations_recorded from supabase_migrations.schema_migrations;

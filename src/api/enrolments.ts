@@ -236,3 +236,59 @@ export function useManagerUnlockDay() {
     },
   });
 }
+
+// ---------------------------------------------------------------------------
+// Enrolment corrections
+//
+// Pause, resume and withdraw all go through database functions rather than
+// direct writes. Pausing in particular is two changes — the enrolment's status
+// and a row recording the period — and if only the first landed, the programme
+// would read as paused with no pause period and every drift figure afterwards
+// would be quietly wrong.
+// ---------------------------------------------------------------------------
+
+function useEnrolmentAction<TInput>(
+  run: (input: TInput) => PromiseLike<{ error: { message: string } | null }>,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: TInput) => {
+      const { error } = await run(input);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['all-advisors'] });
+      void queryClient.invalidateQueries({ queryKey: ['my-enrolment'] });
+      void queryClient.invalidateQueries({ queryKey: ['enrolment-pauses'] });
+    },
+  });
+}
+
+export function usePauseEnrolment() {
+  return useEnrolmentAction<{ enrolmentId: string; reason: string; pausedFrom?: string }>(
+    (input) =>
+      supabase.rpc('pause_enrolment', {
+        target_enrolment_id: input.enrolmentId,
+        reason: input.reason,
+        ...(input.pausedFrom ? { paused_from: input.pausedFrom } : {}),
+      }),
+  );
+}
+
+export function useResumeEnrolment() {
+  return useEnrolmentAction<{ enrolmentId: string; resumeDate?: string }>((input) =>
+    supabase.rpc('resume_enrolment', {
+      target_enrolment_id: input.enrolmentId,
+      ...(input.resumeDate ? { resume_date: input.resumeDate } : {}),
+    }),
+  );
+}
+
+export function useWithdrawEnrolment() {
+  return useEnrolmentAction<{ enrolmentId: string; reason: string }>((input) =>
+    supabase.rpc('withdraw_enrolment', {
+      target_enrolment_id: input.enrolmentId,
+      reason: input.reason,
+    }),
+  );
+}
