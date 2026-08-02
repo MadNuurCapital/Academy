@@ -36,8 +36,8 @@ pending compliance sign-off.
 placeholder; only `/admin/settings` is real. Those jobs — publishing content, creating
 accounts, loading public holidays — are done with SQL in the Supabase dashboard, which is
 workable because of how rarely they happen: publishing once, holidays once a year, accounts
-around twenty a year. **[`LAUNCH.md`](LAUNCH.md) is the runbook**, with the exact SQL for
-each, all of it tested against the real schema.
+around twenty a year. **[`LAUNCH.md`](LAUNCH.md) is the runbook** — browser only, no terminal, with the exact SQL
+for each, all of it tested against the real schema.
 
 ---
 
@@ -76,15 +76,23 @@ project, not the user. Every permission is enforced by Row Level Security in the
 
 ### 2. Apply the migrations
 
-Install the [Supabase CLI](https://supabase.com/docs/guides/cli), then:
+**The quickest route needs no tooling at all.** `supabase/browser/` holds the same SQL
+concatenated into seven files sized to paste into the Supabase dashboard's SQL Editor —
+schema, curriculum, and an optional one that records the schema in the CLI's migration
+ledger. [`LAUNCH.md`](LAUNCH.md) walks through it. The bundles are generated from the source
+files by `./scripts/build-browser-sql.sh`; regenerate and commit them after changing
+anything under `supabase/migrations/` or `supabase/seed/`.
+
+With the [Supabase CLI](https://supabase.com/docs/guides/cli) instead:
 
 ```bash
 supabase link --project-ref <your-project-ref>
 supabase db push
 ```
 
-This creates every table, enum, trigger and RLS policy in `supabase/migrations/`, applied
-in filename order.
+Either way you get every table, enum, trigger and RLS policy in `supabase/migrations/`,
+applied in filename order — the two routes were compared against each other and produce an
+identical database, including all 78 RLS assertions.
 
 To develop against a local database instead:
 
@@ -111,7 +119,7 @@ on conflict (user_id, role) do nothing;
 ```
 
 Sign in. **Every subsequent account is created the same way** — the dashboard, then a role
-grant. There is no user-management screen; see [`LAUNCH.md`](LAUNCH.md) step 8.
+grant. There is no user-management screen; see [`LAUNCH.md`](LAUNCH.md) step 9.
 
 ### 4. Configure auth redirect URLs
 
@@ -174,6 +182,7 @@ Both are verified: every deep route returns 200 and serves the app shell.
 | `npm run typecheck` | TypeScript, no emit |
 | `npm run lint` | ESLint |
 | `npm run db:types` | Regenerate database types from a local Supabase |
+| `./scripts/build-browser-sql.sh` | Rebuild the paste-into-the-dashboard SQL bundles |
 
 ---
 
@@ -197,6 +206,7 @@ src/
 supabase/
   migrations/     Ordered SQL — schema, then RLS
   seed/           Optional programme content
+  browser/        The same SQL, bundled for pasting into the dashboard (generated)
   tests/          RLS assertions
 ```
 

@@ -1,208 +1,123 @@
 # Launching ATLAS Academy
 
-Everything you need to do, in order, from a laptop with nothing installed to advisors
-logging in.
+**Everything here is done in a web browser.** No terminal, nothing to install, no Node, no
+Git, no Supabase CLI. Two tabs — Supabase and Netlify — and this page.
 
-It is written to assume no prior setup. Every command is given in full; every step ends with
-something you can check, and a line telling you what to do when that check fails.
+Every step ends with something you can check, and a line telling you what to do when that
+check fails.
 
-**Do it in two sittings.** Part 0 gets it running on your own machine and costs nothing —
-about half an hour. Part 1 puts it on the internet — about two hours, plus however long your
-content review takes. Doing Part 0 first means that if something is wrong you find out
-before there is a hosted project and a live site to unpick.
+Allow about **90 minutes**, plus however long your content review takes. You can stop after
+step 7 with a working site and come back to the content later.
+
+---
+
+## Why there is no terminal
+
+The command line only ever did two things here: run the app on your own laptop before it was
+live, and apply the database schema.
+
+The first is optional — Netlify gives you the real site within the hour, which is a better
+thing to look at anyway.
+
+The second turned out not to need it. The schema is just SQL, and Supabase has a SQL editor
+built into its dashboard. So the twelve migration files and the nine curriculum files have
+been concatenated into **seven files you paste in**, in `supabase/browser/`. Same SQL, same
+order, same result.
+
+That is not a shortcut with a cost attached — it removes one. `supabase db push` against a
+hosted project was the single step in this whole build that had never been run and could not
+be tested here. Pasting SQL into an editor is something you can watch succeed or fail one
+bundle at a time.
+
+**Proof rather than assurance:** the seven bundles were applied to a clean database in order,
+and the result was compared against the command-line route. Identical — 39 tables, 30 days,
+30 modules, 37 lessons, 144 questions, 576 options, 6 scripts, 4 concept presentations, 12
+rubric criteria. The full security suite, all 78 assertions, passes on the browser-built
+schema exactly as it does on the other one. The quiz answer key is unreadable to advisors
+either way.
 
 ---
 
 ## Before you start
 
-**Read this first, because it changes how you plan the work.**
+**Read this, because it changes how you plan the work.**
 
 Everything an advisor or a manager touches day to day is a real screen. The advisor journey
 is complete, and so is every manager screen — attendance, enrolment, the review queue,
 coaching, fieldwork, readiness decisions and reports.
 
 **The administrator screens are not built.** `/admin/content`, `/admin/users`,
-`/admin/holidays`, `/admin/scripts`, `/admin/concepts` and `/admin/audit` currently render a
+`/admin/holidays`, `/admin/scripts`, `/admin/concepts` and `/admin/audit` render a
 "Not built yet" placeholder. Only `/admin/settings` is real.
 
 So the administrative jobs here — publishing content, creating accounts, loading public
-holidays — are done with SQL in the Supabase dashboard's SQL Editor. That is workable
-because of how rarely they happen: publishing once, holidays once a year, accounts around
-twenty a year. It is not elegant. It is written down precisely so it does not depend on
-anyone remembering it.
+holidays — are done with SQL in the same editor. That is workable because of how rarely they
+happen: publishing once, holidays once a year, accounts around twenty a year. It is not
+elegant. It is written down precisely so it does not depend on anyone remembering it.
 
 Every SQL snippet below has been run against the real schema. Copy them as they are.
 
 ---
 
-# Part 0 — On your own machine
+## How to copy a file from GitHub
 
-Nothing here costs money or creates an account anywhere.
+You will do this seven times, so here it is once.
 
-## 0.1 — Install Node and Git
+1. Open the repository: <https://github.com/MadNuurCapital/Academy>
+2. Switch the branch selector to **`claude/atlas-academy-planning-vgf3ym`**.
+3. Navigate to the file, for example `supabase/browser/01-schema-part-1.sql`.
+4. Click the **copy icon** at the top right of the file view — the two overlapping squares.
+   That copies the whole file, however long it is.
 
-You need **Node 20 or newer** and **Git**. Check whether you already have them. Open
-Terminal (macOS: ⌘-Space, type "Terminal") or PowerShell (Windows: Start, type
-"PowerShell"), and run:
+Then paste it into the Supabase SQL Editor and press **Run**.
 
-```bash
-node --version
-git --version
-```
-
-Two version numbers means you are done — skip to 0.2. `command not found` on either means
-you need to install it.
-
-**macOS** — install [Homebrew](https://brew.sh) if you do not have it, then:
-
-```bash
-brew install node git
-```
-
-**Windows** — download and run the installers:
-
-- Node: <https://nodejs.org> — take the **LTS** build, accept every default.
-- Git: <https://git-scm.com/download/win> — accept every default.
-
-Close and reopen the terminal afterwards, then run the two version commands again.
-
-> **The check:** `node --version` prints `v20.x.x` or higher. If it prints `v18` or lower,
-> the app will not build — install the LTS from nodejs.org over the top.
-
-## 0.2 — Get the code
-
-```bash
-git clone https://github.com/MadNuurCapital/Academy.git
-cd Academy
-git checkout claude/atlas-academy-planning-vgf3ym
-```
-
-That last line matters: the work lives on a branch, not on `main`.
-
-> **The check:** `ls` lists `src`, `supabase`, `package.json` and this file.
->
-> **If it fails:** `Permission denied (publickey)` or a login prompt means the repository is
-> private and your machine is not signed in to GitHub. The simplest fix is to install the
-> [GitHub CLI](https://cli.github.com), run `gh auth login`, and try the clone again.
-
-## 0.3 — Install the dependencies
-
-```bash
-npm install
-```
-
-Two to three minutes the first time. Warnings scroll past; that is normal. What matters is
-that it ends without the word `ERR!`.
-
-> **If it fails:** delete `node_modules` and `package-lock.json`, then run `npm install`
-> again. If it still fails, the Node version is usually the cause — see 0.1.
-
-## 0.4 — Run the checks
-
-Before looking at anything, confirm the code is sound on your machine:
-
-```bash
-npm run lint
-npm run typecheck
-npm test
-```
-
-> **The check:** the first two print nothing beyond their own command line, and the third
-> ends with `Tests  62 passed (62)`. Anything else, stop and tell me what it said.
-
-## 0.5 — Start it
-
-The app will not start without Supabase credentials, which you do not have yet. Create the
-file it wants, with placeholder values, so you can see the sign-on screen:
-
-```bash
-cp .env.example .env
-```
-
-Open `.env` in any text editor and put anything non-empty in the two values for now:
-
-```
-VITE_SUPABASE_URL=http://localhost
-VITE_SUPABASE_ANON_KEY=placeholder
-```
-
-Then:
-
-```bash
-npm run dev
-```
-
-Open <http://localhost:5173>.
-
-> **The check:** the ATLAS Academy sign-on screen, dark navy, with the logo above it. You
-> cannot sign in yet — there is no database behind it — and that is expected.
->
-> **If you get a blank page instead**, open the browser console (F12) and look for
-> *"Missing Supabase configuration"*. That means `.env` was not saved, or was saved
-> somewhere other than the `Academy` folder. The file must sit next to `package.json`.
-
-Press `Ctrl-C` in the terminal to stop the server when you are done looking.
+> **If the copy icon is not there**, click **Raw**, then select all (Ctrl-A / ⌘-A) and copy.
 
 ---
 
-# Part 1 — Putting it live
-
-From here you are creating real accounts. Both Supabase and Netlify have free tiers that
-comfortably cover one intake.
-
-## Step 1 — Create the Supabase project and apply the schema
+## Step 1 — Create the Supabase project
 
 Sign up at [supabase.com](https://supabase.com) and create a project.
 
 - **Region: Singapore.** Your users are there, and it keeps the data in-country.
-- **Database password:** it generates one. Copy it into a password manager now — you will not
-  be shown it again, and you need it in a moment.
-- Wait for the project to finish provisioning. Two or three minutes.
+- **Database password:** it generates one. Save it in a password manager. You do not need it
+  for anything in this guide, but you will want it one day and it is not shown again.
+- Wait for provisioning to finish. Two or three minutes.
 
-Your **project ref** is the string in the dashboard URL:
-`https://supabase.com/dashboard/project/`**`abcdefghijklmnop`**.
-
-Install the Supabase CLI:
-
-```bash
-# macOS
-brew install supabase/tap/supabase
-
-# Windows (PowerShell)
-scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-scoop install supabase
-```
-
-Then, from inside the `Academy` folder:
-
-```bash
-supabase login          # opens a browser to authorise
-supabase link --project-ref <your-project-ref>
-supabase db push
-```
-
-`db push` applies the twelve files in `supabase/migrations/` in filename order — every table,
-enum, trigger, function and Row Level Security policy. It will ask for the database password
-from earlier.
-
-> ⚠️ **Do this against a throwaway project first.** The migrations themselves are tested
-> thoroughly against PostgreSQL, but `supabase db push` talking to a *hosted* project is the
-> one step never exercised during development, because Docker was not available in the build
-> environment. Push to a scratch project, confirm it completes, then delete it and do the
-> real one. Ten minutes now against a two-hour recovery later.
-
-> **The check:** Dashboard → Table Editor. Thirty-nine tables, including `profiles`,
-> `enrolments`, `modules`, `quiz_options` and `coaching_private_notes`.
->
-> **If it fails:** `failed SASL auth` means the database password is wrong — reset it under
-> Project Settings → Database and run `supabase link` again. If a migration errors partway,
-> do not re-run it against the same project: delete the project and start clean. Half-applied
-> migrations are far more painful to unpick than a fresh project is to create, which is the
-> whole reason for the throwaway above.
+> **The check:** the project dashboard loads and the left sidebar shows Table Editor, SQL
+> Editor, Authentication and so on.
 
 ---
 
-## Step 2 — Create your own account and make yourself administrator
+## Step 2 — Paste in the schema
+
+Dashboard → **SQL Editor** → **New query**.
+
+Copy each of these from GitHub, paste, press **Run**, wait for *Success*, then clear the
+editor and do the next one. **In this order:**
+
+| # | File | What it creates |
+|---|---|---|
+| 1 | `supabase/browser/01-schema-part-1.sql` | Tables, roles, enrolments, security policies |
+| 2 | `supabase/browser/02-schema-part-2.sql` | Progression, attendance, practical, readiness |
+
+Each takes a few seconds. Order matters — the second depends on the first.
+
+Then, **optionally**, run `supabase/browser/07-record-migrations.sql`. It does nothing for
+the app; it tells the Supabase command-line tool that this schema is already applied, so that
+if anyone ever does use the CLI on this project it does not try to apply everything twice.
+Thirty seconds now, saves a confusing failure later.
+
+> **The check:** Table Editor now lists **39 tables**, including `profiles`, `enrolments`,
+> `modules`, `quiz_options` and `coaching_private_notes`.
+>
+> **If a bundle errors partway**, do not patch it and carry on. Delete the project and start
+> again from step 1 — it takes three minutes, and a half-applied schema is far more painful
+> to unpick than a fresh project is to create.
+
+---
+
+## Step 3 — Create your own account and make yourself administrator
 
 There are no seeded users and no default password anywhere in this repository. The first
 account is created by hand.
@@ -214,11 +129,11 @@ account is created by hand.
    ```json
    { "full_name": "Your Name" }
    ```
-   This matters. A trigger creates the matching `profiles` row automatically, and if
-   `full_name` is missing it falls back to the part of your email before the `@` — so you
-   would appear throughout the app as "evo.inub". Set it for every account you create.
+   This matters. A trigger creates the matching profile row automatically, and if `full_name`
+   is missing it falls back to the part of your email before the `@` — so you would appear
+   throughout the app as "evo.inub". Set it for every account you create.
 
-Then grant yourself the admin role. Dashboard → **SQL Editor**, replacing the email:
+Then grant yourself the admin role. **SQL Editor**, replacing the email:
 
 ```sql
 insert into public.user_roles (user_id, role)
@@ -236,55 +151,47 @@ on conflict (user_id, role) do nothing;
 >
 > One row, showing your name and `admin`.
 >
-> **If it returns nothing:** the email in the insert did not match the one on the account.
-> Run `select email from public.profiles;` to see what was actually stored, and use that.
+> **If it returns nothing:** the email did not match. Run `select email from public.profiles;`
+> to see what was actually stored, and use that.
 
 ---
 
-## Step 3 — Load the curriculum
+## Step 4 — Paste in the curriculum
 
-In the SQL Editor, run these files **in numeric order**, one at a time, pasting the contents
-of each:
+Same routine as step 2. Four files, in order:
 
-```
-supabase/seed/01-programme.sql
-supabase/seed/02-scripts-concepts-rubrics.sql
-supabase/seed/03-curriculum-protection.sql
-supabase/seed/04-curriculum-foundations.sql
-supabase/seed/05-curriculum-protection-2.sql
-supabase/seed/06-curriculum-savings.sql
-supabase/seed/07-curriculum-conversation.sql
-supabase/seed/08-curriculum-practical.sql
-supabase/seed/09-curriculum-assessment.sql
-```
+| # | File | What it loads |
+|---|---|---|
+| 3 | `supabase/browser/03-programme-and-scripts.sql` | The 30-day programme, 6 scripts, 4 concept presentations, the 12-criterion rubric |
+| 4 | `supabase/browser/04-curriculum-part-1.sql` | Foundations and protection |
+| 5 | `supabase/browser/05-curriculum-part-2.sql` | Savings, investment and client conversation |
+| 6 | `supabase/browser/06-curriculum-part-3.sql` | Practical and assessment |
 
-Order is not a suggestion — the later files depend on rows the earlier ones create, and they
+Order is not a suggestion — later files depend on rows the earlier ones create, and they
 carry guards that stop with a clear message rather than leaving the database half-loaded.
 
-Do **not** run `99-publish-all.sql` yet. That is step 5.
-
-**Check it worked:**
-
-```sql
-select
-  (select count(*) from public.programme_days)   as days,       -- 30
-  (select count(*) from public.modules)          as modules,    -- 30
-  (select count(*) from public.lessons)          as lessons,    -- 37
-  (select count(*) from public.quiz_questions)   as questions,  -- 144
-  (select count(*) from public.quiz_options)     as options,    -- 576
-  (select count(*) from public.scripts)          as scripts,    -- 6
-  (select count(*) from public.concept_presentations) as concepts; -- 4
-```
-
-All seven numbers should match the comments exactly.
+> **The check:**
+>
+> ```sql
+> select
+>   (select count(*) from public.programme_days)   as days,       -- 30
+>   (select count(*) from public.modules)          as modules,    -- 30
+>   (select count(*) from public.lessons)          as lessons,    -- 37
+>   (select count(*) from public.quiz_questions)   as questions,  -- 144
+>   (select count(*) from public.quiz_options)     as options,    -- 576
+>   (select count(*) from public.scripts)          as scripts,    -- 6
+>   (select count(*) from public.concept_presentations) as concepts; -- 4
+> ```
+>
+> All seven numbers should match the comments exactly.
 >
 > **If a file errors** with *"Run supabase/seed/01-programme.sql first"*, you have run them
-> out of order. Start again from `01-` — the guards exist to stop a half-loaded curriculum,
-> and re-running a file that already succeeded is harmless.
+> out of order. Go back to bundle 3 — the guards exist to stop a half-loaded curriculum, and
+> re-running one that already succeeded is harmless.
 
 ---
 
-## Step 4 — Load the public holidays
+## Step 5 — Load the public holidays
 
 **Nothing is seeded here, and the programme will be wrong without it.** The entire schedule
 is counted in working days. With no holidays loaded, the system treats Chinese New Year as
@@ -334,9 +241,9 @@ Put a note in your calendar for each December to add the following year's list.
 
 ---
 
-## Step 5 — Review the content, then publish it
+## Step 6 — Review the content, then publish it
 
-Everything loaded in step 3 is **Draft**. Advisors cannot see draft content — the RLS
+Everything loaded in step 4 is **Draft**. Advisors cannot see draft content — the RLS
 policies stop it at the database, and a day whose required module is unpublished counts as
 incomplete rather than complete, so nobody gets advanced past material you have not cleared.
 
@@ -373,23 +280,23 @@ update public.concept_presentations set status = 'published' where status = 'dra
 ```
 
 **Once you have reviewed the whole set**, `supabase/seed/99-publish-all.sql` does all three
-of these at once — every remaining module, script and concept presentation. It exists for
-after the review, not instead of it.
+of these at once — every remaining module, script and concept presentation. Copy it from
+GitHub the same way as the bundles. It exists for after the review, not instead of it.
 
-**Check it worked:**
-
-```sql
-select 'modules' as kind,
-       count(*) filter (where status = 'draft')     as still_draft,
-       count(*) filter (where status = 'published') as published
-from public.modules
-union all
-select 'scripts', count(*) filter (where status = 'draft'), count(*) filter (where status = 'published')
-from public.scripts
-union all
-select 'concepts', count(*) filter (where status = 'draft'), count(*) filter (where status = 'published')
-from public.concept_presentations;
-```
+> **The check:**
+>
+> ```sql
+> select 'modules' as kind,
+>        count(*) filter (where status = 'draft')     as still_draft,
+>        count(*) filter (where status = 'published') as published
+> from public.modules
+> union all
+> select 'scripts', count(*) filter (where status = 'draft'), count(*) filter (where status = 'published')
+> from public.scripts
+> union all
+> select 'concepts', count(*) filter (where status = 'draft'), count(*) filter (where status = 'published')
+> from public.concept_presentations;
+> ```
 
 You can launch with only the first week published and keep reviewing ahead of the advisors —
 they cannot reach Day 6 in week one anyway.
@@ -399,7 +306,7 @@ they cannot reach Day 6 in week one anyway.
 
 ---
 
-## Step 6 — Configure the authentication URLs
+## Step 7 — Configure the authentication URLs
 
 Dashboard → **Authentication → URL Configuration**. Set the **Site URL** to your live domain,
 and add all four of these as **Redirect URLs**:
@@ -423,7 +330,7 @@ localhost pair so you can still test locally.
 
 ---
 
-## Step 7 — Deploy to Netlify
+## Step 8 — Deploy to Netlify
 
 Connect the GitHub repository in Netlify. Build command, publish directory, Node version,
 security headers and the single-page-app redirect all come from `netlify.toml`, so leave the
@@ -459,7 +366,7 @@ Then **Deploy site**. The first build takes two to three minutes.
 
 ---
 
-## Step 8 — Create the managers and advisors
+## Step 9 — Create the managers and advisors
 
 This is the step you will repeat. Same as step 2:
 
@@ -499,7 +406,7 @@ Give each person their password directly and have them change it, or send them t
 
 ---
 
-## Step 9 — Enrol the first advisor
+## Step 10 — Enrol the first advisor
 
 This one is a real screen. Sign in as a manager or admin → **Enrol** (`/manage/enrol`).
 
@@ -521,7 +428,7 @@ target date, which is what makes "behind schedule" mean anything.
 
 ---
 
-## Step 10 — Smoke test before anyone real arrives
+## Step 11 — Smoke test before anyone real arrives
 
 Sign in as each of the three roles and confirm:
 
@@ -557,20 +464,18 @@ Three things only you can decide:
 
 ## When something goes wrong
 
-**"No published programme template is available"** on the enrol screen — step 3 did not
-complete. Re-run `01-programme.sql`.
+**"No published programme template is available"** on the enrol screen — bundle 3 in step 4
+did not complete. Paste it again.
 
-**An advisor sees an empty Day 1** — the modules for that day are still Draft. Step 5.
+**An advisor sees an empty Day 1** — the modules for that day are still Draft. Step 6.
 
 **An advisor is told they are behind on a public holiday** — the holiday is missing from
-`public_holidays`. Step 4.
+`public_holidays`. Step 5.
 
-**Someone signs in and lands on "no access"** — they have an account but no role. Step 8.
+**Someone signs in and lands on "no access"** — they have an account but no role. Step 9.
 
-**A password-reset link opens an error page** — the redirect URLs in step 6 are missing or do
+**A password-reset link opens an error page** — the redirect URLs in step 7 are missing or do
 not match the live domain exactly.
-
-**`npm run dev` shows a blank page** — `.env` is missing or in the wrong folder. Part 0.5.
 
 **A printed readiness report comes out blank or pale** — your browser is set to skip
 background graphics. It should not matter: the report is designed to print as ink on white
@@ -585,9 +490,9 @@ For the record, so nobody hunts for a screen that does not exist:
 
 | Route | Status | How the job gets done instead |
 |---|---|---|
-| `/admin/content` | Placeholder | Publish with SQL — step 5 |
-| `/admin/users` | Placeholder | Supabase dashboard + SQL — step 8 |
-| `/admin/holidays` | Placeholder | SQL — step 4 |
+| `/admin/content` | Placeholder | Publish with SQL — step 6 |
+| `/admin/users` | Placeholder | Supabase dashboard + SQL — step 9 |
+| `/admin/holidays` | Placeholder | SQL — step 5 |
 | `/admin/scripts` | Placeholder | Seeded; edit with SQL |
 | `/admin/concepts` | Placeholder | Seeded; edit with SQL |
 | `/admin/audit` | Placeholder | Query `public.audit_log` directly |
