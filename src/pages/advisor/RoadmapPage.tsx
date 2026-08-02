@@ -74,6 +74,7 @@ export function RoadmapPage() {
           <div className="space-y-2">
             {group.days.map((day) => {
               const isLocked = day.status === 'locked';
+              const isToday = day.day_number === enrolment.current_day;
               const Icon =
                 day.status === 'complete' ? CheckCircle2 : isLocked ? Lock : Circle;
 
@@ -82,6 +83,10 @@ export function RoadmapPage() {
                   className={cn(
                     'transition-colors',
                     isLocked ? 'opacity-60' : 'hover:border-accent/40',
+                    // The tan edge marks where the advisor is now. It is
+                    // decorative: the "Today" label below carries the meaning,
+                    // so nothing is lost if the colour is not perceived.
+                    isToday && 'border-l-4 border-l-highlight',
                   )}
                 >
                   <CardBody className="flex items-center gap-3 py-3">
@@ -101,6 +106,9 @@ export function RoadmapPage() {
                         Day {day.day_number}
                         {day.programme_days?.title ? ` · ${day.programme_days.title}` : ''}
                       </p>
+                      {isToday && (
+                        <p className="text-xs font-medium text-muted-foreground">Today</p>
+                      )}
                       {day.unlocked_by_override && (
                         <p className="text-xs text-warning">Unlocked by your manager</p>
                       )}

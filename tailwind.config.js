@@ -24,6 +24,13 @@ export default {
           DEFAULT: 'rgb(var(--colour-accent) / <alpha-value>)',
           foreground: 'rgb(var(--colour-accent-foreground) / <alpha-value>)',
         },
+        // The logo's own colours. Used by the Brand component, not for UI.
+        brand: {
+          DEFAULT: 'rgb(var(--colour-brand) / <alpha-value>)',
+          accent: 'rgb(var(--colour-brand-accent) / <alpha-value>)',
+        },
+        // Decorative fill only — see the warning in theme.css.
+        highlight: 'rgb(var(--colour-highlight) / <alpha-value>)',
         success: {
           DEFAULT: 'rgb(var(--colour-success) / <alpha-value>)',
           foreground: 'rgb(var(--colour-success-foreground) / <alpha-value>)',

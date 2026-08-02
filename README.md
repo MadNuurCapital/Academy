@@ -391,14 +391,25 @@ deployment:
 
 ## Branding
 
-The wordmark lives in one place, **`src/components/ui/Brand.tsx`** — `ATLAS Academy` with
-`Integrated Barakah Wealth Advisory` beneath it. Both the app shell and the login screens
-render that same component, so they cannot drift apart, and a real logo can replace the
-markup there without touching either call site.
+The lockup lives in one place, **`src/components/ui/Brand.tsx`** — the mark, `ATLAS Academy`,
+and `Integrated Barakah Wealth Advisory` beneath. Both the app shell and the login screens
+render that same component, so they cannot drift apart.
 
-All colours are CSS custom properties in **`src/styles/theme.css`** — the only file to edit
-when the firm's palette arrives. The current palette is a restrained placeholder: deep
-slate with a single teal accent.
+The mark is **rebuilt as SVG geometry**, not cropped from the supplied file. The original
+artwork is kept at `docs/brand/atlas-academy-logo.jpg` as the reference; it is a JPEG on
+baked-in white, which would show as a white square on any surface that is not white and
+would go soft as soon as it scaled. Every rectangle in the component was measured off that
+artwork, and the recreation was diffed against it pixel by pixel.
+
+All colours are CSS custom properties in **`src/styles/theme.css`**, sampled from the same
+artwork: a deep blue `#0e558b` with a single tan `#e7cf9f`. The logo's own colours
+(`--colour-brand`, `--colour-brand-accent`) are separate tokens from the interface's
+(`--colour-primary`, `--colour-accent`) — they hold the same blue today, but a logo should
+not shift if someone later retunes a button.
+
+**The tan is decorative only.** It scores 1.5:1 against white, far below the 4.5:1 text
+needs, so it is a fill that accompanies a label and never a substitute for one. Every other
+pairing the palette produces passes AA: accent on white 7.8:1, white on primary 13.8:1.
 
 Mobile and desktop are both first-class. Advisors read lessons and check scripts on a
 phone; managers mark attendance and score on a laptop. Sidebar on desktop, bottom tab bar

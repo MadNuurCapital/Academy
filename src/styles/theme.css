@@ -1,15 +1,20 @@
 /*
  * ATLAS Academy — theme tokens
  *
- * This is the ONLY place brand colours are defined. To apply Integrated Barakah
- * Wealth Advisory's palette, replace the RGB triplets below. Nothing else needs
- * to change.
+ * This is the ONLY place brand colours are defined. Nothing else in the
+ * codebase hard-codes a colour.
  *
  * Values are space-separated RGB channels (not hex) so Tailwind can apply
- * opacity modifiers, e.g. `bg-primary/10`.
+ * opacity modifiers, e.g. `bg-accent/10`.
  *
- * Current palette is a deliberately restrained placeholder: deep slate-navy
- * with a single teal accent. Professional, not childish, not overly colourful.
+ * The palette is taken from the Integrated Barakah Wealth Advisory logo, by
+ * sampling the artwork in docs/brand/ rather than by eye: a deep blue with a
+ * single tan accent square.
+ *
+ * Two of these are the LOGO's own colours (--colour-brand, --colour-brand-
+ * accent) and two are the INTERFACE's (--colour-primary, --colour-accent).
+ * They hold the same blue today. They are separate tokens because a logo
+ * should not shift if someone later retunes a button.
  */
 
 :root {
@@ -25,13 +30,29 @@
   /* Lines and focus */
   --colour-border: 226 232 240; /* #e2e8f0 */
   --colour-input: 226 232 240; /* #e2e8f0 */
-  --colour-ring: 15 118 110; /* #0f766e */
+  --colour-ring: 14 85 139; /* #0e558b */
 
-  /* Brand */
-  --colour-primary: 30 41 59; /* #1e293b deep slate */
+  /*
+   * The logo, and nothing else. Used by the Brand component and the favicon.
+   */
+  --colour-brand: 14 85 139; /* #0e558b logo blue */
+  --colour-brand-accent: 231 207 159; /* #e7cf9f logo tan */
+
+  /* Brand — the interface */
+  --colour-primary: 8 47 78; /* #082f4e the logo blue, darkened, for solid buttons */
   --colour-primary-foreground: 248 250 252; /* #f8fafc */
-  --colour-accent: 13 148 136; /* #0d9488 teal */
+  --colour-accent: 14 85 139; /* #0e558b */
   --colour-accent-foreground: 255 255 255; /* #ffffff */
+
+  /*
+   * The tan, for interface use.
+   *
+   * ⚠️ DECORATIVE ONLY. It scores 1.5:1 against white — far below the 4.5:1
+   * that text needs. Never set it as a text colour on a light surface, and
+   * never let it be the only thing distinguishing one state from another.
+   * It is a fill that accompanies a label, not a substitute for one.
+   */
+  --colour-highlight: 231 207 159; /* #e7cf9f */
 
   /* Status — used for programme and attendance states */
   --colour-success: 21 128 61; /* #15803d On Track / Present */
