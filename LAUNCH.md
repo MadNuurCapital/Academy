@@ -482,6 +482,13 @@ did not complete. Paste it again.
 **A password-reset link opens an error page** — the redirect URLs in step 7 are missing or do
 not match the live domain exactly.
 
+**You created someone in Supabase but they are not in Admin → Users** — their profile row is
+missing. Paste `supabase/browser/08-repair.sql` into the SQL Editor and run it. It backfills
+every missing profile, puts the profile-creation trigger back if it has gone, and prints a
+table saying what it found. Safe to run as often as you like.
+
+**You sign in and land on "Your account is missing its profile"** — same thing, same fix.
+
 **A printed readiness report comes out blank or pale** — your browser is set to skip
 background graphics. It should not matter: the report is designed to print as ink on white
 with no backgrounds at all. If it does not, tell me, because that is a bug in the stylesheet

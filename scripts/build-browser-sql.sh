@@ -118,6 +118,12 @@ select count(*) as migrations_recorded from supabase_migrations.schema_migration
 out = 'supabase/browser/07-record-migrations.sql'
 open(out, 'w').write(ledger)
 print('%-46s %6.1f KB  (%d migrations recorded)' % (out, os.path.getsize(out) / 1024, len(migs)))
+
+# 08-repair.sql is hand-written rather than generated — it is a diagnostic, not
+# a concatenation — so it is only reported here, to keep the listing complete.
+repair = 'supabase/browser/08-repair.sql'
+if os.path.exists(repair):
+    print('%-46s %6.1f KB  (hand-written, not generated)' % (repair, os.path.getsize(repair) / 1024))
 PY
 
 echo "✓ Bundles regenerated. Commit supabase/browser/."
