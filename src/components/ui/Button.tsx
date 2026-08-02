@@ -4,7 +4,8 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors ' +
+  'inline-flex items-center justify-center gap-2 rounded-md font-medium '+
+    'transition-[background-color,border-color,transform] duration-150 ease-console active:scale-[0.985] ' +
     'disabled:pointer-events-none disabled:opacity-50 ' +
     // 44px minimum touch target — advisors use this on a phone.
     'min-h-[44px]',
@@ -13,8 +14,8 @@ const buttonVariants = cva(
       variant: {
         primary: 'bg-primary text-primary-foreground hover:bg-primary/90',
         accent: 'bg-accent text-accent-foreground hover:bg-accent/90',
-        outline: 'border border-border bg-surface text-foreground hover:bg-muted',
-        ghost: 'text-foreground hover:bg-muted',
+        outline: 'border border-white/15 bg-white/[0.04] text-foreground hover:bg-white/[0.09] hover:border-white/25',
+        ghost: 'text-foreground hover:bg-white/[0.07]',
         danger: 'bg-danger text-danger-foreground hover:bg-danger/90',
       },
       size: {

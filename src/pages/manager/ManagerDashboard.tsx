@@ -4,7 +4,9 @@ import { useAuth } from '@/auth/useAuth';
 import { useAllAdvisors, today } from '@/api/enrolments';
 import { usePublicHolidays, useSettings } from '@/api/settings';
 import { useAttendancePending } from '@/api/attendance';
-import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Panel } from '@/components/ui/Panel';
+import { Bento, BentoTile } from '@/components/ui/Bento';
+import { Metric } from '@/components/ui/Metric';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/States';
 import { ProgressBadge } from '@/components/ui/StatusBadge';
 import { calculateProgress, createCalendar, type ProgressResult } from '@/lib/workingDays';
@@ -74,19 +76,22 @@ export function ManagerDashboard() {
         on a non-working day so the banner stays quiet at weekends.
       */}
       {attendancePending !== undefined && attendancePending > 0 && (
-        <Link
-          to="/manage/attendance"
-          className="flex items-start gap-3 rounded-md border border-warning/30 bg-warning/5 px-4 py-3 hover:bg-warning/10"
-        >
-          <CalendarCheck className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden="true" />
-          <div className="flex-1">
-            <p className="font-medium">Today's attendance is not recorded</p>
-            <p className="text-sm text-muted-foreground">
-              {attendancePending} {attendancePending === 1 ? 'advisor is' : 'advisors are'} still
-              unmarked. It takes under a minute.
-            </p>
-          </div>
-          <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <Link to="/manage/attendance" className="block">
+          <Panel
+            interactive
+            tone="warning"
+            className="flex items-start gap-3 bg-warning/[0.07] px-4 py-3"
+          >
+            <CalendarCheck className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden="true" />
+            <div className="flex-1">
+              <p className="font-medium">Today&rsquo;s attendance is not recorded</p>
+              <p className="text-sm text-muted-foreground">
+                {attendancePending} {attendancePending === 1 ? 'advisor is' : 'advisors are'} still
+                unmarked. It takes under a minute.
+              </p>
+            </div>
+            <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          </Panel>
         </Link>
       )}
 
@@ -103,32 +108,51 @@ export function ManagerDashboard() {
         />
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <StatCard label="Advisors on programme" value={enrolled.length} />
-            <StatCard
-              label="On track"
-              value={withProgress.filter((row) => row.progress?.status === 'on_track').length}
-            />
-            <StatCard label="Need attention" value={needsAttention.length} emphasis={needsAttention.length > 0} />
-          </div>
+          <Bento>
+            <BentoTile span="third" index={0}>
+              <Panel className="h-full p-5">
+                <Metric label="On programme" value={enrolled.length} />
+              </Panel>
+            </BentoTile>
+            <BentoTile span="third" index={1}>
+              <Panel className="h-full p-5">
+                <Metric
+                  label="On track"
+                  value={withProgress.filter((row) => row.progress?.status === 'on_track').length}
+                  tone="success"
+                />
+              </Panel>
+            </BentoTile>
+            <BentoTile span="third" index={2}>
+              <Panel
+                tone={needsAttention.length > 0 ? 'warning' : 'neutral'}
+                className="h-full p-5"
+              >
+                <Metric
+                  label="Need attention"
+                  value={needsAttention.length}
+                  tone={needsAttention.length > 0 ? 'warning' : 'default'}
+                  note={needsAttention.length === 0 ? 'Nobody is behind target.' : undefined}
+                />
+              </Panel>
+            </BentoTile>
+          </Bento>
 
           {needsAttention.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  <span className="inline-flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-warning" aria-hidden="true" />
-                    Needs attention
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardBody className="p-0">
-                <ul className="divide-y divide-border">
+            <Panel>
+              <div className="border-b border-white/[0.08] px-5 py-4">
+                <p className="console-label inline-flex items-center gap-2">
+                  <AlertTriangle className="h-3.5 w-3.5 text-warning" aria-hidden="true" />
+                  Needs attention
+                </p>
+              </div>
+              <div>
+                <ul className="divide-y divide-white/[0.06]">
                   {needsAttention.map((row) => (
                     <li key={row.profile.id}>
                       <Link
                         to={`/manage/advisors/${row.profile.id}`}
-                        className="flex min-h-[56px] items-center gap-3 px-5 py-3 hover:bg-muted"
+                        className="flex min-h-[56px] items-center gap-3 px-5 py-3 transition-colors hover:bg-white/[0.05]"
                       >
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium">{row.profile.full_name}</p>
@@ -143,8 +167,8 @@ export function ManagerDashboard() {
                     </li>
                   ))}
                 </ul>
-              </CardBody>
-            </Card>
+              </div>
+            </Panel>
           )}
 
           <Link
@@ -157,26 +181,5 @@ export function ManagerDashboard() {
         </>
       )}
     </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  emphasis,
-}: {
-  label: string;
-  value: number;
-  emphasis?: boolean;
-}) {
-  return (
-    <Card>
-      <CardBody>
-        <p className="text-sm text-muted-foreground">{label}</p>
-        <p className={`mt-1 text-2xl font-semibold ${emphasis ? 'text-warning' : 'text-foreground'}`}>
-          {value}
-        </p>
-      </CardBody>
-    </Card>
   );
 }

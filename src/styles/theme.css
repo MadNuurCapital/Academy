@@ -1,66 +1,105 @@
 /*
  * ATLAS Academy — theme tokens
  *
- * This is the ONLY place brand colours are defined. Nothing else in the
- * codebase hard-codes a colour.
+ * This is the ONLY place colour is defined. Nothing else in the codebase
+ * hard-codes one.
  *
  * Values are space-separated RGB channels (not hex) so Tailwind can apply
  * opacity modifiers, e.g. `bg-accent/10`.
  *
- * The palette is taken from the Integrated Barakah Wealth Advisory logo, by
- * sampling the artwork in docs/brand/ rather than by eye: a deep blue with a
- * single tan accent square.
+ * ---------------------------------------------------------------------------
+ * The canvas is dark by design.
+ * ---------------------------------------------------------------------------
  *
- * Two of these are the LOGO's own colours (--colour-brand, --colour-brand-
- * accent) and two are the INTERFACE's (--colour-primary, --colour-accent).
- * They hold the same blue today. They are separate tokens because a logo
- * should not shift if someone later retunes a button.
+ * A navy field built from the Integrated Barakah Wealth Advisory blue rather
+ * than from black, so the brand is in the room even where the logo is not.
+ * Warmth comes from the tan. Nothing glows.
+ *
+ * Two rules keep this readable rather than merely atmospheric:
+ *
+ *   1. Glass panels never sit on top of other glass panels. Text therefore
+ *      always composites against a KNOWN background, and contrast stays a
+ *      number rather than a hope. --colour-panel-solid below is that number:
+ *      the panel's translucency already flattened against the lightest point
+ *      of the canvas gradient, i.e. the worst case for legibility.
+ *
+ *   2. Every foreground token here was measured against the surface it
+ *      actually lands on, not assumed. The logo blue #0e558b, for instance,
+ *      scores 1.6:1 on this canvas and is unusable as an interface colour on
+ *      dark — hence --colour-accent is lifted well away from it.
  */
 
 :root {
-  /* Surfaces */
-  --colour-background: 248 250 252; /* page background   #f8fafc */
-  --colour-surface: 255 255 255; /* cards             #ffffff */
-  --colour-foreground: 15 23 42; /* body text         #0f172a */
+  /* --- Canvas ------------------------------------------------------------ */
+  --colour-background: 7 26 43; /* #071a2b deep navy, top of the gradient */
+  --colour-background-far: 11 39 64; /* #0b2740 lighter navy, bottom */
 
-  /* Muted / secondary text and fills */
-  --colour-muted: 241 245 249; /* #f1f5f9 */
-  --colour-muted-foreground: 100 116 139; /* #64748b */
-
-  /* Lines and focus */
-  --colour-border: 226 232 240; /* #e2e8f0 */
-  --colour-input: 226 232 240; /* #e2e8f0 */
-  --colour-ring: 14 85 139; /* #0e558b */
+  /* Solid lift for anything that is not glass — inputs, selects, wells. */
+  --colour-surface: 14 36 57; /* #0e2439 */
 
   /*
-   * The logo, and nothing else. Used by the Brand component and the favicon.
+   * Glass. Alpha over the canvas, plus the flattened equivalent used for
+   * contrast maths. Keep these two in step: if the alpha changes, recompute
+   * the solid.
    */
-  --colour-brand: 14 85 139; /* #0e558b logo blue */
-  --colour-brand-accent: 231 207 159; /* #e7cf9f logo tan */
+  --colour-panel: 255 255 255; /* applied at 6% — see .panel in index.css */
+  --colour-panel-solid: 26 52 75; /* #1a344b = 6% white over #0b2740 */
+  --colour-hairline: 255 255 255; /* applied at 10% */
 
-  /* Brand — the interface */
-  --colour-primary: 8 47 78; /* #082f4e the logo blue, darkened, for solid buttons */
-  --colour-primary-foreground: 248 250 252; /* #f8fafc */
-  --colour-accent: 14 85 139; /* #0e558b */
-  --colour-accent-foreground: 255 255 255; /* #ffffff */
+  /* --- Text -------------------------------------------------------------- */
+  --colour-foreground: 232 238 245; /* #e8eef5 */
+  --colour-muted: 18 41 63; /* #12293f muted fills */
+  --colour-muted-foreground: 157 178 198; /* #9db2c6 */
+
+  /* --- Lines and focus --------------------------------------------------- */
+  --colour-border: 30 58 85; /* #1e3a55 */
+  --colour-input: 36 66 95; /* #24425f */
+  --colour-ring: 90 164 224; /* #5aa4e0 */
+
+  /* --- The logo ---------------------------------------------------------- */
+  /*
+   * The mark reversed for dark. The geometry is untouched; only the ink
+   * changes, which is what a reversed lockup is. The positive version
+   * (#0e558b on white) still lives in docs/brand/ and on the favicon plate.
+   */
+  --colour-brand: 138 190 233; /* #8abee9 lifted blue */
+  --colour-brand-accent: 231 207 159; /* #e7cf9f logo tan, unchanged */
+
+  /* --- Brand, as interface ----------------------------------------------- */
+  /*
+   * primary is the crisp high-emphasis action: near-white on navy, the
+   * loudest thing on any screen, used sparingly.
+   * accent is the working blue: links, active navigation, focus, progress.
+   */
+  --colour-primary: 232 238 245; /* #e8eef5 */
+  --colour-primary-foreground: 8 33 54; /* #082136 */
+  --colour-accent: 90 164 224; /* #5aa4e0 */
+  --colour-accent-foreground: 5 20 34; /* #051422 */
 
   /*
-   * The tan, for interface use.
+   * The tan, and its one job: marking where the advisor is now.
    *
-   * ⚠️ DECORATIVE ONLY. It scores 1.5:1 against white — far below the 4.5:1
-   * that text needs. Never set it as a text colour on a light surface, and
-   * never let it be the only thing distinguishing one state from another.
-   * It is a fill that accompanies a label, not a substitute for one.
+   * On white it scored 1.5:1 and could only ever be decoration. On this navy
+   * it reaches 9:1, so here it can carry a signal — the current mission node,
+   * the active phase gate. It still never becomes body text, and it is still
+   * never the only thing distinguishing two states: a word always accompanies
+   * it.
    */
   --colour-highlight: 231 207 159; /* #e7cf9f */
+  --colour-highlight-foreground: 8 33 54; /* #082136 */
 
-  /* Status — used for programme and attendance states */
-  --colour-success: 21 128 61; /* #15803d On Track / Present */
-  --colour-success-foreground: 255 255 255;
-  --colour-warning: 180 83 9; /* #b45309 Attention / Late */
-  --colour-warning-foreground: 255 255 255;
-  --colour-danger: 185 28 28; /* #b91c1c Behind / Absent */
-  --colour-danger-foreground: 255 255 255;
+  /* --- Status ------------------------------------------------------------ */
+  /*
+   * All lifted for dark. The light-theme values (#15803d, #b45309, #b91c1c)
+   * were chosen to carry white text on white cards and are far too dark to
+   * read on navy.
+   */
+  --colour-success: 74 222 128; /* #4ade80 On Track / Present */
+  --colour-success-foreground: 5 26 14; /* #051a0e */
+  --colour-warning: 251 191 36; /* #fbbf24 Attention / Late */
+  --colour-warning-foreground: 33 22 2; /* #211602 */
+  --colour-danger: 248 113 113; /* #f87171 Behind / Absent */
+  --colour-danger-foreground: 38 8 8; /* #260808 */
 
-  --radius: 0.625rem;
+  --radius: 0.75rem;
 }

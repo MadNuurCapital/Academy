@@ -55,8 +55,15 @@ export function ConceptsPage() {
 
             {concept.diagram_svg && (
               <div
-                className="overflow-x-auto rounded-md border border-border bg-surface p-4"
+                className="overflow-x-auto rounded-md border border-white/10 bg-white p-4"
                 /*
+                  A white plate, deliberately, on an otherwise dark interface.
+                  These diagrams are drawn in front of a client and are authored
+                  in ink on paper-white; rendering them on glass would make their
+                  labels invisible, and re-colouring them for dark would leave
+                  the advisor practising on something that looks nothing like
+                  what they will actually draw.
+
                   The SVG is authored by an administrator inside ATLAS, not
                   supplied by an advisor, and the content tables are writable
                   only by managers and admins.

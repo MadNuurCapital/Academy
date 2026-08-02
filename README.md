@@ -401,19 +401,47 @@ baked-in white, which would show as a white square on any surface that is not wh
 would go soft as soon as it scaled. Every rectangle in the component was measured off that
 artwork, and the recreation was diffed against it pixel by pixel.
 
-All colours are CSS custom properties in **`src/styles/theme.css`**, sampled from the same
-artwork: a deep blue `#0e558b` with a single tan `#e7cf9f`. The logo's own colours
-(`--colour-brand`, `--colour-brand-accent`) are separate tokens from the interface's
-(`--colour-primary`, `--colour-accent`) — they hold the same blue today, but a logo should
-not shift if someone later retunes a button.
+On a dark canvas the logo's own blue is unusable as interface colour — `#0e558b` scores
+1.6:1 on navy — so the mark is **reversed** for dark, in a lifted `#8abee9` with the tan
+square unchanged. Geometry is untouched; only the ink changes, which is what a reversed
+lockup is. The positive version still sits on the favicon's white plate and in
+`docs/brand/`.
 
-**The tan is decorative only.** It scores 1.5:1 against white, far below the 4.5:1 text
-needs, so it is a fill that accompanies a label and never a substitute for one. Every other
-pairing the palette produces passes AA: accent on white 7.8:1, white on primary 13.8:1.
+---
+
+## The console
+
+The interface is a **dark command centre**: a navy field built from the brand blue rather
+than from black, glass panels, a bento dashboard and mission-based progression.
+
+All colour is CSS custom properties in **`src/styles/theme.css`** — canvas `#071a2b`
+lifting to `#0b2740`, accent `#5aa4e0`, tan `#e7cf9f`, status colours lifted for dark.
+
+Three rules hold it together, and each is written into the code where it applies:
+
+1. **Glass never sits on glass.** `.panel` is translucent, so nesting one inside another
+   makes contrast unknowable. Anything needing its own ground inside a panel uses the solid
+   `bg-panel` token or the `Well` component. Because of that rule, every ratio in
+   `theme.css` stays true — accent on a panel is 4.8:1, body text 11:1.
+2. **The tan signals, it never speaks.** On white it managed 1.5:1 and could only ever be
+   decoration; on this navy it reaches 8.5:1, so here it marks the current mission and the
+   active nav item. It is still never body text, and a word always accompanies it.
+3. **Motion is decoration on a layout that is already correct.** Under
+   `prefers-reduced-motion: reduce` animations and transforms are removed outright rather
+   than slowed, and nothing depends on an animation having run to become usable. Verified:
+   24 animated elements become 0, and the layout is byte-identical either way.
+
+`Card` is a re-export of `Panel`, which is what lets roughly thirty screens inherit the
+console surface without being individually rewritten.
+
+The two concept-presentation diagrams keep a **white plate** on the dark canvas. They are
+drawn in front of a client in ink on paper-white, so re-colouring them for dark would leave
+an advisor practising on something that looks nothing like what they will actually draw.
 
 Mobile and desktop are both first-class. Advisors read lessons and check scripts on a
 phone; managers mark attendance and score on a laptop. Sidebar on desktop, bottom tab bar
-on mobile, 44px minimum touch targets throughout.
+on mobile, 44px minimum touch targets throughout. The bento grid collapses to a single
+column in source order, so the tiles are written in priority order.
 
 ---
 

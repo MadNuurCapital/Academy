@@ -65,14 +65,17 @@ export function ProgressBar({ percent, label }: { percent: number; label?: strin
   return (
     <div className="space-y-1">
       <div
-        className="h-2 w-full overflow-hidden rounded-full bg-muted"
+        className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.07]"
         role="progressbar"
         aria-valuenow={clamped}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label={label ?? 'Programme progress'}
       >
-        <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${clamped}%` }} />
+        <div
+          className="h-full origin-left rounded-full bg-accent transition-[width] duration-[600ms] ease-console"
+          style={{ width: `${clamped}%` }}
+        />
       </div>
     </div>
   );

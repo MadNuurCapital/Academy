@@ -35,10 +35,10 @@ export function AppShell({ items, sectionLabel }: { items: NavItem[]; sectionLab
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border bg-surface lg:flex">
-        <div className="flex h-16 items-center border-b border-border px-5">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/[0.07] bg-white/[0.03] backdrop-blur-xl lg:flex">
+        <div className="flex h-[4.5rem] items-center border-b border-white/[0.07] px-5">
           <Brand />
         </div>
         <nav aria-label={sectionLabel} className="flex-1 space-y-1 overflow-y-auto p-3">
@@ -46,7 +46,7 @@ export function AppShell({ items, sectionLabel }: { items: NavItem[]; sectionLab
             <SidebarLink key={item.to} item={item} />
           ))}
         </nav>
-        <div className="border-t border-border p-3">
+        <div className="border-t border-white/[0.07] p-3">
           <UserSummary name={profile?.full_name} roles={roles} />
           <Button variant="ghost" size="sm" className="mt-2 w-full justify-start" onClick={handleSignOut}>
             <LogOut className="h-4 w-4" aria-hidden="true" />
@@ -56,7 +56,7 @@ export function AppShell({ items, sectionLabel }: { items: NavItem[]; sectionLab
       </aside>
 
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-surface px-4 lg:hidden">
+      <header className="sticky top-0 z-30 flex h-[4.5rem] items-center justify-between border-b border-white/[0.07] bg-background/80 px-4 backdrop-blur-xl lg:hidden">
         <Brand />
         <button
           type="button"
@@ -64,7 +64,7 @@ export function AppShell({ items, sectionLabel }: { items: NavItem[]; sectionLab
           aria-expanded={isMenuOpen}
           aria-controls="mobile-menu"
           aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-foreground hover:bg-muted"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-foreground transition-colors hover:bg-white/[0.07]"
         >
           {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -74,21 +74,21 @@ export function AppShell({ items, sectionLabel }: { items: NavItem[]; sectionLab
       {isMenuOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div
-            className="absolute inset-0 bg-foreground/40"
+            className="absolute inset-0 bg-background/70 backdrop-blur-sm"
             onClick={() => setIsMenuOpen(false)}
             aria-hidden="true"
           />
           <div
             id="mobile-menu"
-            className="absolute inset-y-0 right-0 flex w-72 flex-col bg-surface shadow-xl"
+            className="absolute inset-y-0 right-0 flex w-72 flex-col border-l border-white/10 bg-background/95 shadow-2xl backdrop-blur-xl"
           >
-            <div className="flex h-16 items-center justify-between border-b border-border px-4">
-              <span className="text-sm font-semibold">{sectionLabel}</span>
+            <div className="flex h-[4.5rem] items-center justify-between border-b border-white/[0.07] px-4">
+              <span className="console-label">{sectionLabel}</span>
               <button
                 type="button"
                 onClick={() => setIsMenuOpen(false)}
                 aria-label="Close menu"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-md hover:bg-muted"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-md transition-colors hover:bg-white/[0.07]"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -98,7 +98,7 @@ export function AppShell({ items, sectionLabel }: { items: NavItem[]; sectionLab
                 <SidebarLink key={item.to} item={item} onNavigate={() => setIsMenuOpen(false)} />
               ))}
             </nav>
-            <div className="border-t border-border p-3">
+            <div className="border-t border-white/[0.07] p-3">
               <UserSummary name={profile?.full_name} roles={roles} />
               <Button variant="ghost" size="sm" className="mt-2 w-full justify-start" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4" aria-hidden="true" />
@@ -111,7 +111,7 @@ export function AppShell({ items, sectionLabel }: { items: NavItem[]; sectionLab
 
       {/* Content */}
       <div className="lg:pl-64">
-        <main className="mx-auto max-w-5xl px-4 py-6 pb-28 sm:px-6 lg:pb-10">
+        <main className="mx-auto max-w-6xl px-4 py-6 pb-28 sm:px-6 lg:pb-10">
           <Outlet />
         </main>
       </div>
@@ -120,7 +120,7 @@ export function AppShell({ items, sectionLabel }: { items: NavItem[]; sectionLab
       {primaryItems.length > 0 && (
         <nav
           aria-label={`${sectionLabel} primary`}
-          className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-surface pb-safe lg:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 flex border-t border-white/[0.07] bg-background/85 pb-safe backdrop-blur-xl lg:hidden"
         >
           {primaryItems.map((item) => (
             <NavLink
@@ -130,7 +130,8 @@ export function AppShell({ items, sectionLabel }: { items: NavItem[]; sectionLab
               className={({ isActive }) =>
                 cn(
                   'flex flex-1 flex-col items-center gap-1 px-1 pt-2 text-xs font-medium',
-                  isActive ? 'text-accent' : 'text-muted-foreground',
+                  'transition-colors duration-150',
+                  isActive ? 'text-highlight' : 'text-muted-foreground',
                 )
               }
             >
@@ -152,8 +153,14 @@ function SidebarLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => v
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
-          'flex min-h-[44px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-          isActive ? 'bg-accent/10 text-accent' : 'text-foreground hover:bg-muted',
+          'relative flex min-h-[44px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium',
+          'transition-[background-color,color] duration-150 ease-console',
+          // The active item gets a tan spine at its leading edge as well as the
+          // lifted plate, so the current section is legible without relying on
+          // a colour difference alone.
+          isActive
+            ? 'bg-white/[0.07] text-foreground before:absolute before:inset-y-1.5 before:left-0 before:w-0.5 before:rounded-full before:bg-highlight'
+            : 'text-muted-foreground hover:bg-white/[0.04] hover:text-foreground',
         )
       }
     >

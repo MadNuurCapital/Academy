@@ -11,13 +11,27 @@
 
   html {
     -webkit-text-size-adjust: 100%;
+    /* The canvas must reach the full viewport even when a page is short, or
+       the gradient stops halfway down and the seam shows. */
+    @apply bg-background;
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply text-foreground font-sans antialiased;
     /* Large readable text — advisors are reading lessons, often on a phone. */
     font-size: 16px;
     line-height: 1.6;
+    min-height: 100vh;
+    /* The field: one soft lift towards the lower right, so panels in the upper
+       left read slightly darker and the eye has somewhere to travel. Fixed
+       attachment keeps it still while content scrolls over it. */
+    background-color: rgb(var(--colour-background));
+    background-image: radial-gradient(
+      120% 90% at 85% 100%,
+      rgb(var(--colour-background-far)) 0%,
+      rgb(var(--colour-background)) 60%
+    );
+    background-attachment: fixed;
   }
 
   /* Visible focus for keyboard users on every interactive element. */
@@ -36,11 +50,95 @@
   h3 {
     @apply text-lg font-semibold tracking-tight;
   }
+
+  /* Dark canvas, dark form controls — otherwise the browser paints a white
+     dropdown list and a white date picker into the middle of the console. */
+  input,
+  select,
+  textarea {
+    color-scheme: dark;
+  }
+}
+
+@layer components {
+  /*
+   * The glass panel.
+   *
+   * One rule keeps this legible rather than merely atmospheric: a panel never
+   * sits on top of another panel. Text therefore always composites against the
+   * canvas, which is a known colour, so every contrast ratio in theme.css stays
+   * true. Where something inside a panel needs its own surface, use the solid
+   * `bg-panel` token rather than nesting glass.
+   */
+  .panel {
+    background-color: rgb(var(--colour-panel) / 0.06);
+    border: 1px solid rgb(var(--colour-hairline) / 0.1);
+    border-radius: var(--radius);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+  }
+
+  /* Interactive panels lift a single pixel and brighten their hairline. One
+     elevation step, never a stack of shadows. */
+  .panel-interactive {
+    transition:
+      transform 150ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 150ms cubic-bezier(0.16, 1, 0.3, 1),
+      background-color 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .panel-interactive:hover {
+    transform: translateY(-1px);
+    background-color: rgb(var(--colour-panel) / 0.09);
+    border-color: rgb(var(--colour-hairline) / 0.18);
+  }
+
+  .panel-interactive:active {
+    transform: scale(0.994);
+  }
+
+  /* Small uppercase console labels — the voice of the interface. Quiet and
+     technical, never shouted. */
+  .console-label {
+    @apply text-[11px] font-semibold uppercase tracking-console text-muted-foreground;
+  }
 }
 
 @layer utilities {
   /* Keeps content clear of the mobile bottom tab bar and the iOS home indicator. */
   .pb-safe {
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+  }
+
+  /* Figures that must not jitter as they change. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/*
+ * The motion contract.
+ *
+ * Everything that moves here is decoration on a layout that is already correct.
+ * Someone with vestibular sensitivity gets a still interface, not a slower one:
+ * transforms and animations are removed outright rather than eased, and nothing
+ * depends on an animation having run in order to become visible or usable.
+ *
+ * Colour transitions survive. A hover state changing instantly is not a motion
+ * problem, and losing it would cost feedback for no benefit.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .panel-interactive:hover,
+  .panel-interactive:active {
+    transform: none;
   }
 }

@@ -44,7 +44,7 @@ export function EmptyState({
   icon?: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-surface px-6 py-12 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-white/10 bg-white/[0.03] px-6 py-12 text-center">
       <Icon className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
       <div className="space-y-1">
         <h3 className="text-base font-semibold text-foreground">{title}</h3>
@@ -67,7 +67,7 @@ export function ErrorState({
   return (
     <div
       role="alert"
-      className="flex flex-col items-center justify-center gap-3 rounded-lg border border-danger/30 bg-danger/5 px-6 py-10 text-center"
+      className="flex flex-col items-center justify-center gap-3 rounded-xl border border-danger/30 bg-danger/10 px-6 py-10 text-center"
     >
       <AlertCircle className="h-8 w-8 text-danger" aria-hidden="true" />
       <div className="space-y-1">
