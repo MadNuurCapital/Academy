@@ -142,3 +142,127 @@
     transform: none;
   }
 }
+
+/*
+ * Print.
+ *
+ * The readiness report is the one artefact this application expects to leave
+ * the screen — ReadinessPage calls window.print(), and what comes out is the
+ * record of a manager's judgement about whether an advisor is fit for
+ * supervised client work. It goes in a file.
+ *
+ * On a dark canvas that record prints as pale grey text on white paper, because
+ * browsers drop background colours by default and the foreground was chosen to
+ * sit on navy. So print is not an afterthought here; it is a second theme.
+ *
+ * It is also the light palette this interface used to wear. Those values were
+ * chosen for ink on white and are still right there — #0e558b accent, #15803d
+ * success, #b45309 warning, #b91c1c danger. Re-pointing the same tokens means
+ * every component prints correctly without knowing that printing exists.
+ */
+@media print {
+  :root {
+    --colour-background: 255 255 255;
+    --colour-background-far: 255 255 255;
+    --colour-surface: 255 255 255;
+    --colour-panel-solid: 255 255 255;
+    --colour-foreground: 15 23 42; /* #0f172a */
+    --colour-muted: 241 245 249;
+    --colour-muted-foreground: 71 85 105; /* #475569 — darker than on screen, for paper */
+    --colour-border: 203 213 225; /* #cbd5e1 */
+    --colour-input: 203 213 225;
+
+    --colour-brand: 14 85 139; /* the positive mark, not the reversed one */
+    --colour-accent: 14 85 139; /* #0e558b — 7.8:1 on white */
+    --colour-accent-foreground: 255 255 255;
+    --colour-primary: 15 23 42;
+    --colour-primary-foreground: 255 255 255;
+
+    /* The tan is 1.5:1 on white. On paper it is invisible, so anything relying
+       on it falls back to the border colour and the word beside it does the
+       work — which is why nothing was ever allowed to signal by tan alone. */
+    --colour-highlight: 203 213 225;
+    --colour-highlight-foreground: 15 23 42;
+
+    --colour-success: 21 128 61; /* #15803d */
+    --colour-warning: 180 83 9; /* #b45309 */
+    --colour-danger: 185 28 28; /* #b91c1c */
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    background-image: none !important;
+    color: #0f172a;
+    font-size: 11pt;
+  }
+
+  /* Glass cannot print. A panel becomes what it always was underneath: a box
+     with a rule around it, which survives even when the printer is told to drop
+     backgrounds. */
+  .panel {
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 4px;
+  }
+
+  .panel-interactive:hover,
+  .panel-interactive:active {
+    transform: none !important;
+  }
+
+  /*
+   * A filled control cannot be trusted on paper. Browsers drop background
+   * colours by default, so a solid button prints its label in the fill's
+   * foreground colour — white — directly onto white paper, and vanishes. This
+   * was not hypothetical: "Open readiness review" measured 1:1 against the
+   * sheet before this rule existed.
+   *
+   * So anything interactive that carries a fill prints as outlined ink instead.
+   * It reads whether or not the printer renders backgrounds.
+   */
+  a[class*='bg-'],
+  button[class*='bg-'] {
+    background-color: transparent !important;
+    color: #0f172a !important;
+    border: 1px solid #94a3b8 !important;
+  }
+
+  /* Navigation is not part of the record. */
+  aside,
+  header,
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* A decision and its blocker list must not be split across sheets. */
+  .panel,
+  li,
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* Nothing on paper is clickable, so a link has to say where it went. Confined
+     to prose links: navigation is hidden by now, and printing a URL after every
+     button label would be noise. */
+  main a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 9pt;
+    color: #475569;
+  }
+
+  @page {
+    margin: 18mm 16mm;
+  }
+}

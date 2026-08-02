@@ -1,10 +1,15 @@
 # Launching ATLAS Academy
 
-A step-by-step runbook for taking this from a repository to advisors logging in. Follow it
-in order — each step depends on the one before, and each ends with a way to check it
-actually worked.
+Everything you need to do, in order, from a laptop with nothing installed to advisors
+logging in.
 
-Allow about two hours for steps 1–7, plus however long your content review takes.
+It is written to assume no prior setup. Every command is given in full; every step ends with
+something you can check, and a line telling you what to do when that check fails.
+
+**Do it in two sittings.** Part 0 gets it running on your own machine and costs nothing —
+about half an hour. Part 1 puts it on the internet — about two hours, plus however long your
+content review takes. Doing Part 0 first means that if something is wrong you find out
+before there is a hosted project and a live site to unpick.
 
 ---
 
@@ -20,31 +25,165 @@ coaching, fieldwork, readiness decisions and reports.
 `/admin/holidays`, `/admin/scripts`, `/admin/concepts` and `/admin/audit` currently render a
 "Not built yet" placeholder. Only `/admin/settings` is real.
 
-So the administrative jobs in this runbook — publishing content, creating accounts, loading
-public holidays — are done with SQL in the Supabase dashboard's SQL Editor. That is
-workable because of how rarely they happen: publishing is once, holidays once a year,
-accounts around twenty a year. It is not elegant. It is written down here precisely so it
-does not depend on anyone remembering it.
+So the administrative jobs here — publishing content, creating accounts, loading public
+holidays — are done with SQL in the Supabase dashboard's SQL Editor. That is workable
+because of how rarely they happen: publishing once, holidays once a year, accounts around
+twenty a year. It is not elegant. It is written down precisely so it does not depend on
+anyone remembering it.
 
 Every SQL snippet below has been run against the real schema. Copy them as they are.
 
 ---
 
-## Step 1 — Create the Supabase project and apply the schema
+# Part 0 — On your own machine
 
-Create a project at [supabase.com](https://supabase.com). Choose **Singapore** as the
-region: it is where your users are, and it keeps the data in-country.
+Nothing here costs money or creates an account anywhere.
 
-Install the [Supabase CLI](https://supabase.com/docs/guides/cli), then from the repository
-root:
+## 0.1 — Install Node and Git
+
+You need **Node 20 or newer** and **Git**. Check whether you already have them. Open
+Terminal (macOS: ⌘-Space, type "Terminal") or PowerShell (Windows: Start, type
+"PowerShell"), and run:
 
 ```bash
+node --version
+git --version
+```
+
+Two version numbers means you are done — skip to 0.2. `command not found` on either means
+you need to install it.
+
+**macOS** — install [Homebrew](https://brew.sh) if you do not have it, then:
+
+```bash
+brew install node git
+```
+
+**Windows** — download and run the installers:
+
+- Node: <https://nodejs.org> — take the **LTS** build, accept every default.
+- Git: <https://git-scm.com/download/win> — accept every default.
+
+Close and reopen the terminal afterwards, then run the two version commands again.
+
+> **The check:** `node --version` prints `v20.x.x` or higher. If it prints `v18` or lower,
+> the app will not build — install the LTS from nodejs.org over the top.
+
+## 0.2 — Get the code
+
+```bash
+git clone https://github.com/MadNuurCapital/Academy.git
+cd Academy
+git checkout claude/atlas-academy-planning-vgf3ym
+```
+
+That last line matters: the work lives on a branch, not on `main`.
+
+> **The check:** `ls` lists `src`, `supabase`, `package.json` and this file.
+>
+> **If it fails:** `Permission denied (publickey)` or a login prompt means the repository is
+> private and your machine is not signed in to GitHub. The simplest fix is to install the
+> [GitHub CLI](https://cli.github.com), run `gh auth login`, and try the clone again.
+
+## 0.3 — Install the dependencies
+
+```bash
+npm install
+```
+
+Two to three minutes the first time. Warnings scroll past; that is normal. What matters is
+that it ends without the word `ERR!`.
+
+> **If it fails:** delete `node_modules` and `package-lock.json`, then run `npm install`
+> again. If it still fails, the Node version is usually the cause — see 0.1.
+
+## 0.4 — Run the checks
+
+Before looking at anything, confirm the code is sound on your machine:
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+```
+
+> **The check:** the first two print nothing beyond their own command line, and the third
+> ends with `Tests  62 passed (62)`. Anything else, stop and tell me what it said.
+
+## 0.5 — Start it
+
+The app will not start without Supabase credentials, which you do not have yet. Create the
+file it wants, with placeholder values, so you can see the sign-on screen:
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` in any text editor and put anything non-empty in the two values for now:
+
+```
+VITE_SUPABASE_URL=http://localhost
+VITE_SUPABASE_ANON_KEY=placeholder
+```
+
+Then:
+
+```bash
+npm run dev
+```
+
+Open <http://localhost:5173>.
+
+> **The check:** the ATLAS Academy sign-on screen, dark navy, with the logo above it. You
+> cannot sign in yet — there is no database behind it — and that is expected.
+>
+> **If you get a blank page instead**, open the browser console (F12) and look for
+> *"Missing Supabase configuration"*. That means `.env` was not saved, or was saved
+> somewhere other than the `Academy` folder. The file must sit next to `package.json`.
+
+Press `Ctrl-C` in the terminal to stop the server when you are done looking.
+
+---
+
+# Part 1 — Putting it live
+
+From here you are creating real accounts. Both Supabase and Netlify have free tiers that
+comfortably cover one intake.
+
+## Step 1 — Create the Supabase project and apply the schema
+
+Sign up at [supabase.com](https://supabase.com) and create a project.
+
+- **Region: Singapore.** Your users are there, and it keeps the data in-country.
+- **Database password:** it generates one. Copy it into a password manager now — you will not
+  be shown it again, and you need it in a moment.
+- Wait for the project to finish provisioning. Two or three minutes.
+
+Your **project ref** is the string in the dashboard URL:
+`https://supabase.com/dashboard/project/`**`abcdefghijklmnop`**.
+
+Install the Supabase CLI:
+
+```bash
+# macOS
+brew install supabase/tap/supabase
+
+# Windows (PowerShell)
+scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+scoop install supabase
+```
+
+Then, from inside the `Academy` folder:
+
+```bash
+supabase login          # opens a browser to authorise
 supabase link --project-ref <your-project-ref>
 supabase db push
 ```
 
-That applies the twelve files in `supabase/migrations/` in filename order — every table,
-enum, trigger, function and Row Level Security policy.
+`db push` applies the twelve files in `supabase/migrations/` in filename order — every table,
+enum, trigger, function and Row Level Security policy. It will ask for the database password
+from earlier.
 
 > ⚠️ **Do this against a throwaway project first.** The migrations themselves are tested
 > thoroughly against PostgreSQL, but `supabase db push` talking to a *hosted* project is the
@@ -52,8 +191,14 @@ enum, trigger, function and Row Level Security policy.
 > environment. Push to a scratch project, confirm it completes, then delete it and do the
 > real one. Ten minutes now against a two-hour recovery later.
 
-**Check it worked:** Dashboard → Table Editor. You should see roughly forty tables including
-`profiles`, `enrolments`, `modules`, `quiz_options` and `coaching_private_notes`.
+> **The check:** Dashboard → Table Editor. Thirty-nine tables, including `profiles`,
+> `enrolments`, `modules`, `quiz_options` and `coaching_private_notes`.
+>
+> **If it fails:** `failed SASL auth` means the database password is wrong — reset it under
+> Project Settings → Database and run `supabase link` again. If a migration errors partway,
+> do not re-run it against the same project: delete the project and start clean. Half-applied
+> migrations are far more painful to unpick than a fresh project is to create, which is the
+> whole reason for the throwaway above.
 
 ---
 
@@ -81,15 +226,18 @@ select id, 'admin' from public.profiles where email = 'you@example.com'
 on conflict (user_id, role) do nothing;
 ```
 
-**Check it worked:**
-
-```sql
-select p.email, p.full_name, r.role
-from public.user_roles r
-join public.profiles p on p.id = r.user_id;
-```
-
-One row, showing your name and `admin`.
+> **The check:**
+>
+> ```sql
+> select p.email, p.full_name, r.role
+> from public.user_roles r
+> join public.profiles p on p.id = r.user_id;
+> ```
+>
+> One row, showing your name and `admin`.
+>
+> **If it returns nothing:** the email in the insert did not match the one on the account.
+> Run `select email from public.profiles;` to see what was actually stored, and use that.
 
 ---
 
@@ -129,6 +277,10 @@ select
 ```
 
 All seven numbers should match the comments exactly.
+>
+> **If a file errors** with *"Run supabase/seed/01-programme.sql first"*, you have run them
+> out of order. Start again from `01-` — the guards exist to stop a half-loaded curriculum,
+> and re-running a file that already succeeded is harmless.
 
 ---
 
@@ -170,11 +322,15 @@ available as an [open dataset on data.gov.sg](https://data.gov.sg/datasets/d_149
 
 Put a note in your calendar for each December to add the following year's list.
 
-**Check it worked:**
-
-```sql
-select holiday_date, name from public.public_holidays order by holiday_date;
-```
+> **The check:**
+>
+> ```sql
+> select holiday_date, to_char(holiday_date, 'Dy') as day, name
+> from public.public_holidays order by holiday_date;
+> ```
+>
+> Every row should fall on a weekday. A Saturday or Sunday in that list means you have
+> entered a nominal date rather than the observed one, and it will silently do nothing.
 
 ---
 
@@ -238,6 +394,9 @@ from public.concept_presentations;
 You can launch with only the first week published and keep reviewing ahead of the advisors —
 they cannot reach Day 6 in week one anyway.
 
+> **If an advisor reports an empty day:** that day's modules are still Draft. It is this
+> step, not a bug.
+
 ---
 
 ## Step 6 — Configure the authentication URLs
@@ -254,6 +413,13 @@ https://<your-site>.netlify.app/reset-password
 
 Miss these and password-reset links land on an error page instead of the app. Include the
 localhost pair so you can still test locally.
+
+> **The check:** on the sign-on screen choose *Forgotten your password?*, enter your own
+> address, and confirm the email that arrives links back to your site rather than to a
+> Supabase error page.
+>
+> **If the link errors:** the redirect URL must match the live domain exactly, including
+> `https://` and with no trailing slash.
 
 ---
 
@@ -278,9 +444,18 @@ is enforced by Row Level Security in the database.
 > it must never be pasted into Netlify, into `.env`, or into any file under `src/`. Anything
 > prefixed `VITE_` is compiled into the JavaScript every visitor downloads.
 
-Deploy. **Check it worked:** open your site, land on the login screen, sign in with the
-admin account from step 2. Then refresh the page on a deep URL such as
-`/manage/attendance` — it should reload the screen, not 404.
+Then **Deploy site**. The first build takes two to three minutes.
+
+> **The check:** open your site, land on the sign-on screen, and sign in with the admin
+> account from step 2. Then refresh the page on a deep URL such as `/manage/attendance` — it
+> should reload the screen, not 404.
+>
+> **If the build fails**, open the deploy log in Netlify. `Missing Supabase configuration`
+> means the two environment variables are not set, or were added after the build started —
+> add them, then **Trigger deploy → Clear cache and deploy site**.
+>
+> **If the site loads but sign-in fails**, the variables are set but wrong. They are on one
+> page in Supabase: Project Settings → API.
 
 ---
 
@@ -310,16 +485,17 @@ rows if a manager also needs to see the advisor view.
 Give each person their password directly and have them change it, or send them to
 **Forgotten your password?** on the login screen to set their own.
 
-**Check it worked:**
-
-```sql
-select p.full_name, p.email, r.role
-from public.profiles p
-left join public.user_roles r on r.user_id = p.id
-order by r.role, p.full_name;
-```
-
-Anyone showing a null role can sign in but will land on a "no access" screen.
+> **The check:**
+>
+> ```sql
+> select p.full_name, p.email, r.role
+> from public.profiles p
+> left join public.user_roles r on r.user_id = p.id
+> order by r.role, p.full_name;
+> ```
+>
+> Every person you created appears, with a role. Anyone showing a null role can sign in but
+> will land on a "no access" screen — that is the symptom of a missed role grant.
 
 ---
 
@@ -335,8 +511,13 @@ moves to the next working day and the screen says so.
 The dates are recomputed on the server when you submit. A browser cannot supply a flattering
 target date, which is what makes "behind schedule" mean anything.
 
-**Check it worked:** the advisor appears on `/manage/advisors` with Day 1 of 30, and signing
-in as them shows Day 1 unlocked and everything after it locked.
+> **The check:** the advisor appears on `/manage/advisors` at Day 1 of 30, and signing in as
+> them shows Day 1 unlocked with everything after it locked.
+>
+> **If the advisor is not in the dropdown:** they are already enrolled, or they do not hold
+> the `advisor` role. Step 8.
+>
+> **If it says no published programme template is available:** step 3 did not finish.
 
 ---
 
@@ -388,6 +569,13 @@ complete. Re-run `01-programme.sql`.
 
 **A password-reset link opens an error page** — the redirect URLs in step 6 are missing or do
 not match the live domain exactly.
+
+**`npm run dev` shows a blank page** — `.env` is missing or in the wrong folder. Part 0.5.
+
+**A printed readiness report comes out blank or pale** — your browser is set to skip
+background graphics. It should not matter: the report is designed to print as ink on white
+with no backgrounds at all. If it does not, tell me, because that is a bug in the stylesheet
+rather than in your printer settings.
 
 ---
 
