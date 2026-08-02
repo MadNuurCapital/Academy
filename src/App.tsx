@@ -136,7 +136,9 @@ export function App() {
             {/* Administrator */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
               <Route element={<AdminLayout />}>
-                <Route path="/admin" element={<Navigate to="/admin/content" replace />} />
+                {/* Users, not content: content is still a placeholder, and landing an
+                    admin on "Not built yet" is a poor way to open the app. */}
+                <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
                 <Route path="/admin/content" element={<PlaceholderPage title="Content management" phase="Phase 2" />} />
                 <Route path="/admin/content/modules/:moduleId" element={<PlaceholderPage title="Edit module" phase="Phase 2" />} />
                 <Route path="/admin/content/lessons/:lessonId" element={<PlaceholderPage title="Edit lesson" phase="Phase 2" />} />

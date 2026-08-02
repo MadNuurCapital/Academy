@@ -13,6 +13,12 @@ export interface NavItem {
   /** Shown in the mobile bottom bar. Space is limited, so only the primary few. */
   primary?: boolean;
   end?: boolean;
+  /**
+   * Marks a screen that is not built yet. Saying so in the navigation is kinder
+   * than letting someone tap it and find out — particularly on a phone, where
+   * getting back is a deliberate act.
+   */
+  pending?: boolean;
 }
 
 /**
@@ -165,7 +171,10 @@ function SidebarLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => v
       }
     >
       <item.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-      {item.label}
+      <span className="flex-1">{item.label}</span>
+      {item.pending && (
+        <span className="console-label shrink-0 text-[10px] opacity-70">Soon</span>
+      )}
     </NavLink>
   );
 }
