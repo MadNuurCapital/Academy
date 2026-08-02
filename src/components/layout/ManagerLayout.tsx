@@ -1,4 +1,4 @@
-import { BarChart3, CalendarCheck, ClipboardCheck, LayoutDashboard, MessageSquare, Users } from 'lucide-react';
+import { BarChart3, CalendarCheck, ClipboardCheck, LayoutDashboard, MessageSquare, User, Users } from 'lucide-react';
 import { AppShell, type NavItem } from './AppShell';
 
 /**
@@ -14,6 +14,7 @@ const items: NavItem[] = [
   { to: '/manage/reviews', label: 'Reviews', icon: ClipboardCheck, primary: true },
   { to: '/manage/coaching', label: 'Coaching', icon: MessageSquare, primary: true },
   { to: '/manage/reports', label: 'Reports', icon: BarChart3 },
+  { to: '/profile', label: 'Profile', icon: User },
 ];
 
 export function ManagerLayout() {

@@ -5,6 +5,7 @@ import { ProtectedRoute } from '@/auth/ProtectedRoute';
 import { AdvisorLayout } from '@/components/layout/AdvisorLayout';
 import { ManagerLayout } from '@/components/layout/ManagerLayout';
 import { AdminLayout } from '@/components/layout/AdminLayout';
+import { ProfileLayout } from '@/components/layout/ProfileLayout';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage';
 import { SetPasswordPage } from '@/pages/auth/SetPasswordPage';
@@ -35,6 +36,7 @@ import { RecordFieldworkPage } from '@/pages/manager/FieldworkManagePage';
 import { ReadinessPage } from '@/pages/manager/ReadinessPage';
 import { ReportsPage } from '@/pages/manager/ReportsPage';
 import { SettingsPage } from '@/pages/admin/SettingsPage';
+import { UsersPage } from '@/pages/admin/UsersPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
 import { RoleHomeRedirect } from '@/pages/RoleHomeRedirect';
 import { NoAccessPage } from '@/pages/NoAccessPage';
@@ -97,6 +99,16 @@ export function App() {
                 <Route path="/feedback" element={<FeedbackPage />} />
                 <Route path="/progress" element={<ProgressPage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
+              </Route>
+            </Route>
+
+            {/*
+              Everyone gets their own profile, whatever their role. This lived
+              inside the advisor block, which meant a manager or an admin could
+              not reach the one screen that edits their own name.
+            */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<ProfileLayout />}>
                 <Route path="/profile" element={<ProfilePage />} />
               </Route>
             </Route>
@@ -132,7 +144,7 @@ export function App() {
                 <Route path="/admin/scripts" element={<PlaceholderPage title="Script library" phase="Phase 4" />} />
                 <Route path="/admin/concepts" element={<PlaceholderPage title="Concept presentations" phase="Phase 4" />} />
                 <Route path="/admin/rubrics" element={<PlaceholderPage title="Scoring rubrics" phase="Phase 4" />} />
-                <Route path="/admin/users" element={<PlaceholderPage title="Users and roles" phase="Phase 2" />} />
+                <Route path="/admin/users" element={<UsersPage />} />
                 <Route path="/admin/holidays" element={<PlaceholderPage title="Public holidays" phase="Phase 3" />} />
                 <Route path="/admin/settings" element={<SettingsPage />} />
                 <Route path="/admin/audit" element={<PlaceholderPage title="Audit log" phase="Phase 3" />} />

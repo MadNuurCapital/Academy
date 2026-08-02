@@ -1,4 +1,4 @@
-import { CalendarDays, FileText, History, Layers, Settings, Users } from 'lucide-react';
+import { CalendarDays, FileText, History, Layers, Settings, User, Users } from 'lucide-react';
 import { AppShell, type NavItem } from './AppShell';
 
 const items: NavItem[] = [
@@ -8,6 +8,7 @@ const items: NavItem[] = [
   { to: '/admin/holidays', label: 'Holidays', icon: CalendarDays, primary: true },
   { to: '/admin/settings', label: 'Settings', icon: Settings, primary: true },
   { to: '/admin/audit', label: 'Audit log', icon: History },
+  { to: '/profile', label: 'Profile', icon: User },
 ];
 
 export function AdminLayout() {
