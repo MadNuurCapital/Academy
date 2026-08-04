@@ -15,6 +15,10 @@
 -- This tells the ledger the truth, so the browser route and the CLI route stay
 -- interchangeable. Run it once, after the two schema bundles.
 --
+-- It records the baseline only — the twelve migrations that bundles 01 and 02
+-- actually contain. The numbered update files from 10 onwards each record
+-- themselves when you run them.
+--
 -- This file is generated. See scripts/build-browser-sql.sh
 -- =========================================================================
 
@@ -38,9 +42,8 @@ insert into supabase_migrations.schema_migrations (version, name) values
   ('20260731000900', 'attendance'),
   ('20260731001000', 'practical'),
   ('20260731001100', 'practical_rls'),
-  ('20260731001200', 'readiness'),
-  ('20260802000100', 'enrolment_actions')
+  ('20260731001200', 'readiness')
 on conflict (version) do nothing;
 
--- Expect 13 rows.
+-- Expect 12 rows. The update files from 10 onwards add one row each.
 select count(*) as migrations_recorded from supabase_migrations.schema_migrations;

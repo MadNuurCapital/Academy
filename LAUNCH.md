@@ -189,18 +189,34 @@ carry guards that stop with a clear message rather than leaving the database hal
 
 ---
 
-## Updates after you have launched
+## Step 4b — Run the updates
 
-New features sometimes add to the database. Those arrive as their own files, numbered from
-10, and are **only for a project that already exists** — a brand new one gets them from
-bundles 01 and 02.
+Bundles 01 and 02 are the frozen launch baseline. Anything added to the database since then
+arrives as its own file, numbered from 10, and **every project runs them — new or already
+live.** They are not optional extras and they are not only for existing projects.
+
+*(An earlier version of this page said a new project got these from bundles 01 and 02. That
+was wrong. The baseline has to stay frozen, because re-pasting it over a database that
+already has it fails on the first `create table` — so everything since lives in these files
+instead.)*
 
 | File | What it adds |
 |---|---|
 | `supabase/browser/10-update-enrolment-actions.sql` | Pause, resume and withdraw an enrolment |
+| `supabase/browser/11-update-content-authoring.sql` | Editing the curriculum inside the app — lessons, quiz questions, answers and publishing. It also repairs a fault that made **every** quiz edit fail. |
 
-Paste and run each one you have not run yet. They are safe to run twice, and they never
-touch the bundles you have already applied.
+Paste and run each one you have not run yet, in numeric order. They are safe to run twice,
+they never touch the bundles you have already applied, and each records itself so the
+database and the migration ledger stay in step.
+
+> **The check**, after the last one:
+>
+> ```sql
+> select count(*) as recorded from supabase_migrations.schema_migrations;
+> ```
+>
+> Twelve from bundle 07, plus one per update file. With updates 10 and 11 run, that is 14.
+> (If you skipped the optional bundle 07, expect 2 — that is fine, nothing depends on it.)
 
 ---
 

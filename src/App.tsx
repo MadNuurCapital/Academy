@@ -37,6 +37,8 @@ import { ReadinessPage } from '@/pages/manager/ReadinessPage';
 import { ReportsPage } from '@/pages/manager/ReportsPage';
 import { SettingsPage } from '@/pages/admin/SettingsPage';
 import { UsersPage } from '@/pages/admin/UsersPage';
+import { ContentPage } from '@/pages/admin/ContentPage';
+import { ModuleEditorPage } from '@/pages/admin/ModuleEditorPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
 import { RoleHomeRedirect } from '@/pages/RoleHomeRedirect';
 import { NoAccessPage } from '@/pages/NoAccessPage';
@@ -136,13 +138,13 @@ export function App() {
             {/* Administrator */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
               <Route element={<AdminLayout />}>
-                {/* Users, not content: content is still a placeholder, and landing an
-                    admin on "Not built yet" is a poor way to open the app. */}
+                {/* Users first: adding people is the thing an admin opens the app to
+                    do most often, and content is a review pass rather than a daily one. */}
                 <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
-                <Route path="/admin/content" element={<PlaceholderPage title="Content management" phase="Phase 2" />} />
-                <Route path="/admin/content/modules/:moduleId" element={<PlaceholderPage title="Edit module" phase="Phase 2" />} />
-                <Route path="/admin/content/lessons/:lessonId" element={<PlaceholderPage title="Edit lesson" phase="Phase 2" />} />
-                <Route path="/admin/content/quizzes/:quizId" element={<PlaceholderPage title="Edit quiz" phase="Phase 2" />} />
+                <Route path="/admin/content" element={<ContentPage />} />
+                {/* Lessons and quizzes are edited inside their module rather than on
+                    routes of their own — an author works on a day, not on a lesson id. */}
+                <Route path="/admin/content/modules/:moduleId" element={<ModuleEditorPage />} />
                 <Route path="/admin/scripts" element={<PlaceholderPage title="Script library" phase="Phase 4" />} />
                 <Route path="/admin/concepts" element={<PlaceholderPage title="Concept presentations" phase="Phase 4" />} />
                 <Route path="/admin/rubrics" element={<PlaceholderPage title="Scoring rubrics" phase="Phase 4" />} />

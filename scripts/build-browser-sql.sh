@@ -83,8 +83,13 @@ for i, (srcs, out, title) in enumerate(plan, start=1):
 # The migration ledger. Pasting SQL bypasses the record the Supabase CLI keeps
 # of what it has applied, so this writes that record by hand and keeps the two
 # routes interchangeable.
+# Only the baseline goes in here. Bundles 01 and 02 contain exactly the twelve
+# baseline migrations, so recording anything more would be a lie — and a
+# damaging one: the ledger is what `supabase db push` consults, so a version
+# recorded but never applied is a migration that can never be applied. Each
+# update file records itself instead.
 rows = []
-for f in migs:
+for f in baseline:
     version, _, name = os.path.basename(f)[:-4].partition('_')
     rows.append("  ('%s', '%s')" % (version, name))
 
@@ -105,6 +110,10 @@ ledger = '''-- =================================================================
 -- This tells the ledger the truth, so the browser route and the CLI route stay
 -- interchangeable. Run it once, after the two schema bundles.
 --
+-- It records the baseline only — the twelve migrations that bundles 01 and 02
+-- actually contain. The numbered update files from 10 onwards each record
+-- themselves when you run them.
+--
 -- This file is generated. See scripts/build-browser-sql.sh
 -- =========================================================================
 
@@ -120,25 +129,32 @@ insert into supabase_migrations.schema_migrations (version, name) values
 %s
 on conflict (version) do nothing;
 
--- Expect %d rows.
+-- Expect %d rows. The update files from 10 onwards add one row each.
 select count(*) as migrations_recorded from supabase_migrations.schema_migrations;
-''' % (',\n'.join(rows), len(migs))
+''' % (',\n'.join(rows), len(baseline))
 
 out = 'supabase/browser/07-record-migrations.sql'
 open(out, 'w').write(ledger)
-print('%-46s %6.1f KB  (%d migrations recorded)' % (out, os.path.getsize(out) / 1024, len(migs)))
+print('%-46s %6.1f KB  (%d baseline migrations recorded)' % (out, os.path.getsize(out) / 1024, len(baseline)))
 
-# Post-launch migrations, one file each, numbered from 10 so they sort after
-# everything a fresh install runs. An existing project applies these; a new one
-# already has them from bundles 01 and 02.
+# Migrations written after the launch baseline, one file each, numbered from 10
+# so they sort after everything else.
+#
+# EVERY project runs these, new or existing. The baseline bundles deliberately
+# do not absorb them: re-pasting a baseline bundle over a live database fails on
+# its first `create table`, so the baseline has to stay frozen. That means a
+# brand new project gets the baseline from 01 and 02 and everything since from
+# these files — the same files an existing project runs.
 UPDATE_HEADER = '''-- =========================================================================
 -- ATLAS Academy — update {n}: {name}
 --
--- FOR AN EXISTING PROJECT. Paste into the Supabase SQL Editor and Run.
+-- RUN THIS ON EVERY PROJECT, new or existing. Paste into the Supabase SQL
+-- Editor and press Run.
 --
--- A brand new project does not need this — bundles 01 and 02 already contain
--- it. Applying it twice is harmless; the file drops and recreates rather than
--- assuming what is there.
+-- Bundles 01 and 02 are the frozen launch baseline and do not contain this, so
+-- a database that has only had those pasted into it still needs this file.
+-- Applying it twice is harmless: it drops and recreates rather than assuming
+-- what is already there.
 --
 -- Source: {src}
 -- This file is generated. See scripts/build-browser-sql.sh
@@ -146,11 +162,37 @@ UPDATE_HEADER = '''-- ==========================================================
 
 '''
 
+# Each update records itself in the ledger. Bundle 07 covers the baseline only,
+# and is optional, so this has to stand on its own.
+UPDATE_LEDGER = '''
+
+-- ---------------------------------------------------------------------------
+-- Record this update in the migration ledger, so that pasting SQL and
+-- `supabase db push` stay interchangeable. Safe if you skipped bundle 07.
+-- ---------------------------------------------------------------------------
+
+create schema if not exists supabase_migrations;
+
+create table if not exists supabase_migrations.schema_migrations (
+  version text primary key,
+  statements text[],
+  name text
+);
+
+insert into supabase_migrations.schema_migrations (version, name)
+values ('{version}', '{name}')
+on conflict (version) do nothing;
+'''
+
 for n, src in enumerate(updates, start=10):
-    name = os.path.basename(src)[:-4].partition('_')[2].replace('_', ' ')
-    out = 'supabase/browser/%d-update-%s.sql' % (n, os.path.basename(src)[:-4].partition('_')[2].replace('_', '-'))
-    open(out, 'w').write(UPDATE_HEADER.format(n=n - 9, name=name, src=src) + open(src).read())
-    print('%-46s %6.1f KB  (update, existing projects only)' % (out, os.path.getsize(out) / 1024))
+    version, _, name = os.path.basename(src)[:-4].partition('_')
+    out = 'supabase/browser/%d-update-%s.sql' % (n, name.replace('_', '-'))
+    open(out, 'w').write(
+        UPDATE_HEADER.format(n=n - 9, name=name.replace('_', ' '), src=src)
+        + open(src).read()
+        + UPDATE_LEDGER.format(version=version, name=name)
+    )
+    print('%-46s %6.1f KB  (update, every project)' % (out, os.path.getsize(out) / 1024))
 
 # 08-repair.sql is hand-written rather than generated — it is a diagnostic, not
 # a concatenation — so it is only reported here, to keep the listing complete.

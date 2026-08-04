@@ -1,11 +1,13 @@
 -- =========================================================================
 -- ATLAS Academy — update 1: enrolment actions
 --
--- FOR AN EXISTING PROJECT. Paste into the Supabase SQL Editor and Run.
+-- RUN THIS ON EVERY PROJECT, new or existing. Paste into the Supabase SQL
+-- Editor and press Run.
 --
--- A brand new project does not need this — bundles 01 and 02 already contain
--- it. Applying it twice is harmless; the file drops and recreates rather than
--- assuming what is there.
+-- Bundles 01 and 02 are the frozen launch baseline and do not contain this, so
+-- a database that has only had those pasted into it still needs this file.
+-- Applying it twice is harmless: it drops and recreates rather than assuming
+-- what is already there.
 --
 -- Source: supabase/migrations/20260802000100_enrolment_actions.sql
 -- This file is generated. See scripts/build-browser-sql.sh
@@ -227,3 +229,21 @@ revoke all on function public.withdraw_enrolment(uuid, text) from public;
 grant execute on function public.pause_enrolment(uuid, text, date) to authenticated;
 grant execute on function public.resume_enrolment(uuid, date) to authenticated;
 grant execute on function public.withdraw_enrolment(uuid, text) to authenticated;
+
+
+-- ---------------------------------------------------------------------------
+-- Record this update in the migration ledger, so that pasting SQL and
+-- `supabase db push` stay interchangeable. Safe if you skipped bundle 07.
+-- ---------------------------------------------------------------------------
+
+create schema if not exists supabase_migrations;
+
+create table if not exists supabase_migrations.schema_migrations (
+  version text primary key,
+  statements text[],
+  name text
+);
+
+insert into supabase_migrations.schema_migrations (version, name)
+values ('20260802000100', 'enrolment_actions')
+on conflict (version) do nothing;

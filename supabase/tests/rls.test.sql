@@ -946,4 +946,151 @@ select pg_temp.assert_eq(
   (select count(*) from public.readiness_reviews),
   1, 'advisor can read the readiness decision recorded about them');
 
+-- ---------------------------------------------------------------------------
+-- Content authoring
+--
+-- quiz_options.is_correct is revoked from the whole `authenticated` role, which
+-- is why an author needs a security-definer function to reach it. That function
+-- is now the one route to the answer key in the entire application, so it earns
+-- its own assertions: an advisor must not get through it, and the column
+-- privilege it exists to avoid must stay revoked.
+-- ---------------------------------------------------------------------------
+
+select pg_temp.act_as(:'alice');
+
+do $$
+begin
+  begin
+    perform public.quiz_for_authoring('99999999-0000-0000-0000-000000000001');
+    raise exception 'FAIL: an advisor read the answer key through quiz_for_authoring';
+  exception when raise_exception then
+    if position('Only a manager or administrator' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: advisor cannot read the answer key through quiz_for_authoring';
+  end;
+
+  begin
+    perform public.save_quiz_question(
+      '99999999-0000-0000-0000-000000000001', null, 'Who decides?', null, 99,
+      '[{"option_text":"Me","is_correct":true},{"option_text":"Not me","is_correct":false}]'::jsonb);
+    raise exception 'FAIL: an advisor wrote a quiz question';
+  exception when raise_exception then
+    if position('Only a manager or administrator' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: advisor cannot write a quiz question';
+  end;
+
+  begin
+    perform public.delete_quiz_question('88888888-0000-0000-0000-000000000001');
+    raise exception 'FAIL: an advisor deleted a quiz question';
+  exception when raise_exception then
+    if position('Only a manager or administrator' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: advisor cannot delete a quiz question';
+  end;
+
+  begin
+    perform public.set_module_status('cccccccc-0000-0000-0000-000000000001', 'published');
+    raise exception 'FAIL: an advisor published a module';
+  exception when raise_exception then
+    if position('Only a manager or administrator' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: advisor cannot publish a module';
+  end;
+end;
+$$;
+
+-- The author's route works, and the deferred trigger that guards "every question
+-- keeps a correct option" no longer fails for want of privileges — it is the
+-- reason a quiz could not be edited from the application at all.
+select pg_temp.act_as(:'manager');
+
+select pg_temp.assert_eq(
+  (select jsonb_array_length(public.quiz_for_authoring('99999999-0000-0000-0000-000000000001') -> 'questions')),
+  5, 'manager can read the quiz with its answers');
+
+select pg_temp.assert_eq(
+  (select count(*) from jsonb_array_elements(
+     public.quiz_for_authoring('99999999-0000-0000-0000-000000000001') -> 'questions') q,
+     jsonb_array_elements(q -> 'options') o
+   where (o ->> 'is_correct')::boolean),
+  5, 'the answer key comes back marked, one correct option per question');
+
+do $$
+declare
+  new_id uuid;
+begin
+  new_id := public.save_quiz_question(
+    '99999999-0000-0000-0000-000000000001', null,
+    'Is the Full Retirement Sum an insurance product?', 'It is a CPF threshold, not a product.', 6,
+    '[{"option_text":"No, it is a CPF savings threshold","is_correct":true},
+      {"option_text":"Yes, issued by CPF Board","is_correct":false}]'::jsonb);
+
+  if new_id is null then
+    raise exception 'FAIL: save_quiz_question returned nothing';
+  end if;
+  raise notice 'pass: a manager can add a question and its options';
+
+  -- Editing replaces the options wholesale, which is the path that used to die
+  -- inside the constraint trigger at commit time.
+  perform public.save_quiz_question(
+    '99999999-0000-0000-0000-000000000001', new_id,
+    'Is the Full Retirement Sum an insurance product?', null, 6,
+    '[{"option_text":"No — it is a CPF savings threshold","is_correct":true},
+      {"option_text":"Yes, it is issued by CPF Board","is_correct":false},
+      {"option_text":"It is a unit trust","is_correct":false}]'::jsonb);
+  raise notice 'pass: a manager can rewrite an existing question and its options';
+
+  begin
+    perform public.save_quiz_question(
+      '99999999-0000-0000-0000-000000000001', new_id, 'No answer', null, 6,
+      '[{"option_text":"a","is_correct":false},{"option_text":"b","is_correct":false}]'::jsonb);
+    raise exception 'FAIL: a question was saved with no correct option';
+  exception when raise_exception then
+    if position('Mark one option' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: a question with no correct option is refused by name';
+  end;
+
+  begin
+    perform public.save_quiz_question(
+      '99999999-0000-0000-0000-000000000001', new_id, 'Two answers', null, 6,
+      '[{"option_text":"a","is_correct":true},{"option_text":"b","is_correct":true}]'::jsonb);
+    raise exception 'FAIL: a question was saved with two correct options';
+  exception when raise_exception then
+    if position('Only one option' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: a question with two correct options is refused';
+  end;
+
+  begin
+    perform public.save_quiz_question(
+      '99999999-0000-0000-0000-000000000001', new_id, 'Only one choice', null, 6,
+      '[{"option_text":"a","is_correct":true}]'::jsonb);
+    raise exception 'FAIL: a question was saved with a single option';
+  exception when raise_exception then
+    if position('at least two options' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: a question with fewer than two options is refused';
+  end;
+
+  perform public.delete_quiz_question(new_id);
+  raise notice 'pass: a manager can delete a question';
+end;
+$$;
+
+select pg_temp.act_as_owner();
+
+select pg_temp.assert_eq(
+  (select count(*) from public.quiz_questions where quiz_id = '99999999-0000-0000-0000-000000000001'),
+  5, 'the added question and its options are gone again after deletion');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.audit_log
+   where action in ('create_quiz_question', 'update_quiz_question', 'delete_quiz_question')),
+  3, 'every authoring action is written to the audit log');
+
+-- The whole point of the function is that this grant is never needed.
+do $$
+begin
+  if has_column_privilege('authenticated', 'public.quiz_options', 'is_correct', 'select') then
+    raise exception 'FAIL: authenticated can read quiz_options.is_correct';
+  end if;
+  raise notice 'pass: the answer-key column privilege is still revoked';
+end;
+$$;
+
 rollback;

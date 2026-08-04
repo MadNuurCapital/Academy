@@ -12,9 +12,9 @@ import { AppShell, type NavItem } from './AppShell';
  */
 const items: NavItem[] = [
   { to: '/admin/users', label: 'Users', icon: Users, primary: true },
+  { to: '/admin/content', label: 'Content', icon: Layers, primary: true },
   { to: '/admin/settings', label: 'Settings', icon: Settings, primary: true },
   { to: '/profile', label: 'Profile', icon: User, primary: true },
-  { to: '/admin/content', label: 'Content', icon: Layers, pending: true },
   { to: '/admin/scripts', label: 'Scripts', icon: FileText, pending: true },
   { to: '/admin/holidays', label: 'Holidays', icon: CalendarDays, pending: true },
   { to: '/admin/audit', label: 'Audit log', icon: History, pending: true },
