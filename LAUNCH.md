@@ -46,16 +46,17 @@ Everything an advisor or a manager touches day to day is a real screen. The advi
 is complete, and so is every manager screen — attendance, enrolment, the review queue,
 coaching, fieldwork, readiness decisions and reports.
 
-**Most of the administrator screens are built too**: Users, Content, Scripts, Concepts and
-Settings. Reviewing and publishing the curriculum is a screen now, not a SQL statement.
+**The administrator screens are built too**: Users, Content, Scripts, Concepts, Holidays,
+Audit log and Settings. Reviewing and publishing the curriculum is a screen now, not a SQL
+statement, and so is maintaining the holiday list.
 
-**Two are still SQL**: public holidays (`/admin/holidays`) and the audit log
-(`/admin/audit`). Both are marked "Soon" in the navigation rather than left to be discovered.
+**Creating an account is done in the Supabase dashboard**, not in the app. That one is not an
+oversight and will not change: creating an auth user is a privileged operation that needs the
+`service_role` key, and that key must never reach a browser. Once an account exists,
+everything else about it — name, roles, deactivation — is done in Admin → Users.
 
-And **creating an account is done in the Supabase dashboard**, not in the app. That one is
-not an oversight: creating an auth user is a privileged operation that needs the
-`service_role` key, and that key must never reach a browser. Once an account exists, its
-name and roles are editable in Admin → Users.
+The SQL in steps 5 and 6 below is still SQL for one reason: at that point in the runbook the
+site is not deployed yet. From step 8 onwards you would do both jobs in the app.
 
 Every SQL snippet below has been run against the real schema. Copy them as they are.
 
@@ -260,7 +261,11 @@ moon sighting and can shift; the rest move year to year anyway. The authority is
 [MOM's published list](https://www.mom.gov.sg/employment-practices/public-holidays), also
 available as an [open dataset on data.gov.sg](https://data.gov.sg/datasets/d_149b61ad0a22f61c09dc80f2df5bbec8/view).
 
-Put a note in your calendar for each December to add the following year's list.
+Put a note in your calendar for each December to add the following year's list. **After the
+site is live you do this in the app** — Admin → Holidays, which shows a year at a time, warns
+you when the next year is empty, and refuses to let a Sunday date slip in unnoticed by
+offering the Monday in lieu instead. The SQL above is only because the site is not deployed
+until step 8.
 
 > **The check:**
 >
@@ -483,7 +488,8 @@ Three things only you can decide:
 3. **The CPF figures.** Day 15 teaches the Basic, Full and Enhanced Retirement Sums using the
    2026 figures. These are revised every January. They are stored as editable `terminology`
    rows rather than baked into lesson text, so correcting them is one update statement —
-   but nothing will remind you. Check them each January.
+   but nothing will remind you. Check them each January, at the same time as you add that
+   year's public holidays in Admin → Holidays.
 
 ---
 
@@ -494,8 +500,9 @@ did not complete. Paste it again.
 
 **An advisor sees an empty Day 1** — the modules for that day are still Draft. Step 6.
 
-**An advisor is told they are behind on a public holiday** — the holiday is missing from
-`public_holidays`. Step 5.
+**An advisor is told they are behind on a public holiday** — the holiday is missing, or it
+was entered on its nominal Sunday rather than the Monday in lieu. Admin → Holidays shows the
+weekday next to every date and marks any that fall on a weekend as changing nothing.
 
 **Someone signs in and lands on "no access"** — they have an account but no role. Step 9.
 
@@ -527,8 +534,12 @@ For the record, so nobody hunts for a screen that does not exist:
 | `/admin/scripts` | **Built** | Edit and publish the script library |
 | `/admin/concepts` | **Built** | Edit and publish the concept presentations |
 | `/admin/settings` | **Built** | — |
-| `/admin/holidays` | Not built | SQL — step 5 |
-| `/admin/audit` | Not built | Query `public.audit_log` directly |
+| `/admin/holidays` | **Built** | Add and remove holidays a year at a time |
+| `/admin/audit` | **Built** | Read-only, filtered by person and date |
+
+Every administrator screen is now real. The SQL in steps 5 and 6 is still here because at
+that point in the runbook the site is not deployed yet — after step 8 you would do both of
+those in the app.
 
 **Creating an account** is not on this list because it is not going to be a screen. It needs
 the `service_role` key, and that key must never be sent to a browser — so accounts are

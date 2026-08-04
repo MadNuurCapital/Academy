@@ -13,11 +13,14 @@ import { AppShell, type NavItem } from './AppShell';
 /**
  * Administrator navigation.
  *
- * Only screens that exist are `primary`. The mobile tab bar shows the first
- * five primary items and nothing else, so filling it with placeholders — as it
- * was — meant an admin on a phone was mostly being offered dead ends. The
- * unbuilt ones stay listed, marked `pending`, because knowing they are coming
- * is useful and tapping into "Not built yet" is not.
+ * The mobile tab bar shows the first five `primary` items and nothing else, so
+ * those four are the ones an administrator reaches for most: adding people,
+ * reviewing content, settings, and their own profile. The rest are a tap away
+ * in the menu.
+ *
+ * Every item here is now a real screen. The `pending` marker the unbuilt ones
+ * carried is kept in NavItem for the next thing that is announced before it
+ * lands.
  */
 const items: NavItem[] = [
   { to: '/admin/users', label: 'Users', icon: Users, primary: true },
@@ -26,8 +29,8 @@ const items: NavItem[] = [
   { to: '/profile', label: 'Profile', icon: User, primary: true },
   { to: '/admin/scripts', label: 'Scripts', icon: FileText },
   { to: '/admin/concepts', label: 'Concepts', icon: Presentation },
-  { to: '/admin/holidays', label: 'Holidays', icon: CalendarDays, pending: true },
-  { to: '/admin/audit', label: 'Audit log', icon: History, pending: true },
+  { to: '/admin/holidays', label: 'Holidays', icon: CalendarDays },
+  { to: '/admin/audit', label: 'Audit log', icon: History },
 ];
 
 export function AdminLayout() {

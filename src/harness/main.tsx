@@ -15,6 +15,8 @@ import { ContentPage } from '@/pages/admin/ContentPage';
 import { ModuleEditorPage } from '@/pages/admin/ModuleEditorPage';
 import { ScriptsAdminPage } from '@/pages/admin/ScriptsAdminPage';
 import { ConceptsAdminPage } from '@/pages/admin/ConceptsAdminPage';
+import { HolidaysPage } from '@/pages/admin/HolidaysPage';
+import { AuditPage } from '@/pages/admin/AuditPage';
 import type {
   ConceptPresentation,
   Lesson,
@@ -277,6 +279,70 @@ const concepts: ConceptPresentation[] = [
 queryClient.setQueryData(['authoring-scripts'], scripts);
 queryClient.setQueryData(['authoring-concepts'], concepts);
 
+queryClient.setQueryData(
+  ['holidays-admin'],
+  [
+    { id: 'h-1', holiday_date: '2026-01-01', name: "New Year's Day" },
+    { id: 'h-2', holiday_date: '2026-02-17', name: 'Chinese New Year' },
+    { id: 'h-3', holiday_date: '2026-02-18', name: 'Chinese New Year' },
+    { id: 'h-4', holiday_date: '2026-04-03', name: 'Good Friday' },
+    { id: 'h-5', holiday_date: '2026-05-01', name: 'Labour Day' },
+    { id: 'h-6', holiday_date: '2026-05-27', name: 'Hari Raya Haji' },
+    { id: 'h-7', holiday_date: '2026-06-01', name: 'Vesak Day (in lieu of Sun 31 May)' },
+    { id: 'h-8', holiday_date: '2026-08-10', name: 'National Day (in lieu of Sun 9 Aug)' },
+    // Deliberately wrong, so the screen is photographed saying so.
+    { id: 'h-9', holiday_date: '2026-11-08', name: 'Deepavali' },
+    { id: 'h-10', holiday_date: '2026-12-25', name: 'Christmas Day' },
+  ],
+);
+
+queryClient.setQueryData(
+  ['admin-users'],
+  [
+    { profile: { id: 'admin-1', full_name: 'Nur Iman' }, roles: ['admin'] },
+    { profile: { id: 'mgr-1', full_name: 'Siti Rahmah' }, roles: ['manager'] },
+  ],
+);
+
+queryClient.setQueryData(
+  ['audit-log', { actorId: undefined, from: undefined, to: undefined, limit: 100 }],
+  [
+    {
+      id: 'a-1',
+      actor_id: 'admin-1',
+      entity_type: 'module',
+      entity_id: 'm-3',
+      action: 'set_module_status',
+      reason: null,
+      before: { status: 'draft', title: 'CPF, the Retirement Sums and what they are not' },
+      after: { status: 'published' },
+      created_at: '2026-08-04T02:14:00Z',
+    },
+    {
+      id: 'a-2',
+      actor_id: 'mgr-1',
+      entity_type: 'quiz_attempt',
+      entity_id: 'att-1',
+      action: 'reset_quiz_attempts',
+      reason: 'Three attempts used on a question that turned out to be worded ambiguously.',
+      before: { attempts: 3 },
+      after: { attempts: 0 },
+      created_at: '2026-08-03T09:41:00Z',
+    },
+    {
+      id: 'a-3',
+      actor_id: 'mgr-1',
+      entity_type: 'enrolment',
+      entity_id: 'e-1',
+      action: 'pause_enrolment',
+      reason: 'Family emergency. Agreed to resume on the 17th.',
+      before: { status: 'active' },
+      after: { status: 'paused', paused_from: '2026-07-28' },
+      created_at: '2026-07-28T01:02:00Z',
+    },
+  ],
+);
+
 const auth: AuthState = {
   session: null,
   profile: {
@@ -313,6 +379,8 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/admin/content/modules/:moduleId" element={<ModuleEditorPage />} />
             <Route path="/admin/scripts" element={<ScriptsAdminPage />} />
             <Route path="/admin/concepts" element={<ConceptsAdminPage />} />
+            <Route path="/admin/holidays" element={<HolidaysPage />} />
+            <Route path="/admin/audit" element={<AuditPage />} />
           </Route>
         </Routes>
       </MemoryRouter>

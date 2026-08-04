@@ -1166,4 +1166,87 @@ select pg_temp.assert_eq(
    where action in ('set_script_status', 'set_concept_status')),
   2, 'publishing a script or a concept is written to the audit log');
 
+-- ---------------------------------------------------------------------------
+-- Public holidays
+--
+-- Everyone reads them, because every working-day calculation on every screen
+-- depends on the list. Only an admin changes it: a wrong entry moves every
+-- advisor's target end date at once.
+-- ---------------------------------------------------------------------------
+
+select pg_temp.act_as(:'alice');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.public_holidays where holiday_date = '2026-08-09'),
+  1, 'advisor can read the public holidays');
+
+do $$
+begin
+  begin
+    insert into public.public_holidays (holiday_date, name)
+    values ('2026-12-25', 'Christmas Day');
+    raise exception 'FAIL: an advisor added a public holiday';
+  exception when insufficient_privilege or check_violation then
+    raise notice 'pass: advisor cannot add a public holiday';
+  end;
+end;
+$$;
+
+with attempt as (
+  delete from public.public_holidays where holiday_date = '2026-08-09' returning 1
+)
+select pg_temp.assert_eq((select count(*) from attempt), 0,
+  'advisor cannot delete a public holiday');
+
+select pg_temp.act_as(:'manager');
+
+do $$
+begin
+  begin
+    insert into public.public_holidays (holiday_date, name)
+    values ('2026-12-25', 'Christmas Day');
+    raise exception 'FAIL: a manager added a public holiday';
+  exception when insufficient_privilege or check_violation then
+    raise notice 'pass: a manager cannot change the holiday list either — it is admin-only';
+  end;
+end;
+$$;
+
+select pg_temp.act_as(:'admin');
+
+with attempt as (
+  delete from public.public_holidays where holiday_date = '2026-08-09' returning 1
+)
+select pg_temp.assert_eq((select count(*) from attempt), 1,
+  'admin can remove a public holiday');
+
+-- The audit log is append-only. An admin reads it and cannot rewrite it, which
+-- is the entire reason the screen that shows it is read-only.
+--
+-- There is no update or delete policy at all, so both are filtered to nothing
+-- rather than refused — the row is simply not visible to the statement. The
+-- assertion is therefore on the number of rows changed, not on an error.
+select pg_temp.act_as(:'admin');
+
+do $$
+begin
+  if (select count(*) from public.audit_log) = 0 then
+    raise exception 'FAIL: the admin sees an empty audit log, but entries were written above';
+  end if;
+  raise notice 'pass: admin can read the audit log';
+end;
+$$;
+
+with attempt as (
+  update public.audit_log set reason = 'Rewritten' returning 1
+)
+select pg_temp.assert_eq((select count(*) from attempt), 0,
+  'nobody can edit an audit entry, admin included');
+
+with attempt as (
+  delete from public.audit_log returning 1
+)
+select pg_temp.assert_eq((select count(*) from attempt), 0,
+  'nobody can delete an audit entry, admin included');
+
 rollback;

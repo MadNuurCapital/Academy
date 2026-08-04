@@ -41,6 +41,8 @@ import { ContentPage } from '@/pages/admin/ContentPage';
 import { ModuleEditorPage } from '@/pages/admin/ModuleEditorPage';
 import { ScriptsAdminPage } from '@/pages/admin/ScriptsAdminPage';
 import { ConceptsAdminPage } from '@/pages/admin/ConceptsAdminPage';
+import { HolidaysPage } from '@/pages/admin/HolidaysPage';
+import { AuditPage } from '@/pages/admin/AuditPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
 import { RoleHomeRedirect } from '@/pages/RoleHomeRedirect';
 import { NoAccessPage } from '@/pages/NoAccessPage';
@@ -151,9 +153,9 @@ export function App() {
                 <Route path="/admin/concepts" element={<ConceptsAdminPage />} />
                 <Route path="/admin/rubrics" element={<PlaceholderPage title="Scoring rubrics" phase="Phase 4" />} />
                 <Route path="/admin/users" element={<UsersPage />} />
-                <Route path="/admin/holidays" element={<PlaceholderPage title="Public holidays" phase="Phase 3" />} />
+                <Route path="/admin/holidays" element={<HolidaysPage />} />
                 <Route path="/admin/settings" element={<SettingsPage />} />
-                <Route path="/admin/audit" element={<PlaceholderPage title="Audit log" phase="Phase 3" />} />
+                <Route path="/admin/audit" element={<AuditPage />} />
               </Route>
             </Route>
 
