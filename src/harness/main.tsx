@@ -13,7 +13,15 @@ import { AuthContext, type AuthState } from '@/auth/AuthContext';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { ContentPage } from '@/pages/admin/ContentPage';
 import { ModuleEditorPage } from '@/pages/admin/ModuleEditorPage';
-import type { Lesson, Module, ProgrammeDay } from '@/types/database';
+import { ScriptsAdminPage } from '@/pages/admin/ScriptsAdminPage';
+import { ConceptsAdminPage } from '@/pages/admin/ConceptsAdminPage';
+import type {
+  ConceptPresentation,
+  Lesson,
+  Module,
+  ProgrammeDay,
+  Script,
+} from '@/types/database';
 import '@/styles/index.css';
 
 const now = '2026-08-04T00:00:00Z';
@@ -157,6 +165,118 @@ queryClient.setQueryData(['module-editing', 'm-3'], {
 });
 queryClient.setQueryData(['quiz-authoring', 'quiz-1'], quiz);
 
+const scripts: Script[] = [
+  {
+    id: 'script-1',
+    title: 'Asking someone you know for an introduction',
+    situation:
+      'You have finished your licensing and are building a first list of people to speak to.',
+    objective:
+      'Ask plainly for an introduction, in a way the other person can say no to without it costing anything.',
+    wording:
+      'I have just started as a financial advisor with Integrated Barakah Wealth Advisory.\n\n' +
+      'I am not asking you to buy anything, and I am not going to pitch you. I am building up\n' +
+      'the practice of having the conversation properly. If you know someone who would not mind\n' +
+      'half an hour with me so I can practise, I would be grateful. And if not, that is\n' +
+      'completely fine.',
+    talking_points: [
+      'Say who you work for and what you do, in one sentence.',
+      'Make the ask specific: half an hour, a conversation, not a sale.',
+      'Give them a way to decline that costs them nothing.',
+    ],
+    variations: [
+      'If they ask what you would talk about, describe the fact-find, not a product.',
+      'If they offer to be the one you practise on, take it — that is a better outcome.',
+    ],
+    common_mistakes: [
+      'Describing a product before there is any reason to.',
+      'Asking for "anyone who needs insurance", which is a question nobody can answer.',
+      'Apologising so much that the other person feels awkward saying yes.',
+    ],
+    compliance_note:
+      'You are asking for an introduction, not giving advice. Do not describe or recommend any product in this conversation.',
+    sequence: 1,
+    version: 1,
+    status: 'published',
+    approved_at: '2026-08-01T00:00:00Z',
+  },
+  {
+    id: 'script-2',
+    title: 'Opening a first meeting',
+    situation: 'The first time you sit down with someone who has agreed to meet you.',
+    objective: 'Set out what the meeting is and is not, so nobody is waiting for a sales pitch.',
+    wording:
+      'Thank you for the time. Before anything else — this meeting is me understanding your\n' +
+      'situation. I am not going to recommend anything today, because I do not know enough yet\n' +
+      'to recommend anything responsibly.',
+    talking_points: [
+      'Say what will happen in this meeting and what will not.',
+      'Explain that a recommendation comes later, after a fact-find.',
+    ],
+    variations: [],
+    common_mistakes: ['Moving to a product because the silence feels uncomfortable.'],
+    compliance_note: null,
+    sequence: 2,
+    version: 1,
+    status: 'draft',
+    approved_at: null,
+  },
+];
+
+const concepts: ConceptPresentation[] = [
+  {
+    id: 'concept-1',
+    name: 'The Four Pillars',
+    purpose:
+      'Show how protection, savings, investment and retirement sit alongside each other, so a client can see what they already have and what is missing.',
+    suitable_situations:
+      'A first conversation with someone who has never mapped out their finances.',
+    when_not_to_use:
+      'When the client already knows exactly what they want to talk about. Walking them through a framework they did not ask for wastes the meeting.',
+    diagram_svg: null,
+    steps: [
+      'Draw the four pillars and name them.',
+      'Ask which one they feel most confident about.',
+      'Ask which one they have thought about least.',
+      'Stop there. The gap they name is the conversation.',
+    ],
+    discovery_questions: [
+      'If your income stopped tomorrow, how long could the household carry on as it is?',
+      'Which of these four have you already put something in place for?',
+    ],
+    transition:
+      'Once the client names a gap, move to fact-finding about that gap rather than presenting anything.',
+    common_mistakes: [
+      'Presenting all four pillars as problems to be solved at once.',
+      'Filling the silence after a question instead of letting them answer.',
+    ],
+    compliance_note:
+      'This is an explanation, not a recommendation. Nothing here is specific to a product.',
+    is_required: true,
+    sequence: 1,
+    status: 'published',
+  },
+  {
+    id: 'concept-2',
+    name: 'Life Journey Timeline',
+    purpose: 'Place known future commitments on a timeline so their order becomes visible.',
+    suitable_situations: 'Clients with children, or with a dependant whose needs change by year.',
+    when_not_to_use: 'When the client finds a long horizon distressing rather than clarifying.',
+    diagram_svg: null,
+    steps: ['Draw the years ahead.', 'Mark the commitments the client already knows about.'],
+    discovery_questions: ['What is already fixed in the next ten years?'],
+    transition: null,
+    common_mistakes: ['Putting a product on the timeline before the client has put a need on it.'],
+    compliance_note: null,
+    is_required: false,
+    sequence: 3,
+    status: 'draft',
+  },
+];
+
+queryClient.setQueryData(['authoring-scripts'], scripts);
+queryClient.setQueryData(['authoring-concepts'], concepts);
+
 const auth: AuthState = {
   session: null,
   profile: {
@@ -191,6 +311,8 @@ createRoot(document.getElementById('root')!).render(
           <Route element={<AdminLayout />}>
             <Route path="/admin/content" element={<ContentPage />} />
             <Route path="/admin/content/modules/:moduleId" element={<ModuleEditorPage />} />
+            <Route path="/admin/scripts" element={<ScriptsAdminPage />} />
+            <Route path="/admin/concepts" element={<ConceptsAdminPage />} />
           </Route>
         </Routes>
       </MemoryRouter>

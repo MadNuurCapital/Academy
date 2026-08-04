@@ -1093,4 +1093,77 @@ begin
 end;
 $$;
 
+-- ---------------------------------------------------------------------------
+-- Publishing a script or a concept presentation
+--
+-- These are the words a new advisor says to a member of the public. Editing
+-- them is an ordinary manager write; publishing goes through a function so that
+-- the moment they became visible is on the record.
+-- ---------------------------------------------------------------------------
+
+insert into public.scripts (id, title, situation, objective, wording, sequence)
+values ('55555555-0000-0000-0000-000000000001', 'Asking for an introduction',
+        'Building a first list of people to speak to', 'Ask plainly, and make it easy to decline',
+        'I have just started as a financial advisor.', 1);
+
+insert into public.concept_presentations (id, name, purpose, sequence)
+values ('44444444-0000-0000-0000-000000000001', 'The Four Pillars',
+        'Show how protection, savings, investment and retirement sit together', 1);
+
+select pg_temp.act_as(:'alice');
+
+do $$
+begin
+  begin
+    perform public.set_script_status('55555555-0000-0000-0000-000000000001', 'published');
+    raise exception 'FAIL: an advisor published a script';
+  exception when raise_exception then
+    if position('Only a manager or administrator' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: advisor cannot publish a script';
+  end;
+
+  begin
+    perform public.set_concept_status('44444444-0000-0000-0000-000000000001', 'published');
+    raise exception 'FAIL: an advisor published a concept presentation';
+  exception when raise_exception then
+    if position('Only a manager or administrator' in sqlerrm) = 0 then raise; end if;
+    raise notice 'pass: advisor cannot publish a concept presentation';
+  end;
+end;
+$$;
+
+-- An advisor sees published content and nothing else, which is what makes
+-- publishing the meaningful act.
+select pg_temp.assert_eq(
+  (select count(*) from public.scripts), 0, 'advisor cannot see a draft script');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.concept_presentations),
+  0, 'advisor cannot see a draft concept presentation');
+
+select pg_temp.act_as(:'manager');
+select public.set_script_status('55555555-0000-0000-0000-000000000001', 'published');
+select public.set_concept_status('44444444-0000-0000-0000-000000000001', 'published');
+
+select pg_temp.act_as(:'alice');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.scripts), 1, 'advisor sees a script once it is published');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.concept_presentations),
+  1, 'advisor sees a concept presentation once it is published');
+
+select pg_temp.act_as_owner();
+
+select pg_temp.assert_eq(
+  (select count(*) from public.scripts
+   where id = '55555555-0000-0000-0000-000000000001' and approved_at is not null),
+  1, 'publishing a script records when the wording was cleared');
+
+select pg_temp.assert_eq(
+  (select count(*) from public.audit_log
+   where action in ('set_script_status', 'set_concept_status')),
+  2, 'publishing a script or a concept is written to the audit log');
+
 rollback;

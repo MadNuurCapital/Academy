@@ -20,19 +20,19 @@ The first is optional — Netlify gives you the real site within the hour, which
 thing to look at anyway.
 
 The second turned out not to need it. The schema is just SQL, and Supabase has a SQL editor
-built into its dashboard. So the twelve migration files and the nine curriculum files have
-been concatenated into **seven files you paste in**, in `supabase/browser/`. Same SQL, same
-order, same result.
+built into its dashboard. So the migration files and the nine curriculum files have been
+concatenated into **files you paste in**, in `supabase/browser/` — seven for the launch
+baseline, plus one small file per change made since. Same SQL, same order, same result.
 
 That is not a shortcut with a cost attached — it removes one. `supabase db push` against a
 hosted project was the single step in this whole build that had never been run and could not
 be tested here. Pasting SQL into an editor is something you can watch succeed or fail one
 bundle at a time.
 
-**Proof rather than assurance:** the seven bundles were applied to a clean database in order,
-and the result was compared against the command-line route. Identical — 39 tables, 30 days,
-30 modules, 37 lessons, 144 questions, 576 options, 6 scripts, 4 concept presentations, 12
-rubric criteria. The full security suite, all 78 assertions, passes on the browser-built
+**Proof rather than assurance:** the bundles were applied to a clean database in order, and
+the result was compared against the command-line route. Identical — 39 tables, 30 days, 30
+modules, 37 lessons, 144 questions, 576 options, 6 scripts, 4 concept presentations, 12
+rubric criteria. The full security suite, all 101 assertions, passes on the browser-built
 schema exactly as it does on the other one. The quiz answer key is unreadable to advisors
 either way.
 
@@ -46,14 +46,16 @@ Everything an advisor or a manager touches day to day is a real screen. The advi
 is complete, and so is every manager screen — attendance, enrolment, the review queue,
 coaching, fieldwork, readiness decisions and reports.
 
-**The administrator screens are not built.** `/admin/content`, `/admin/users`,
-`/admin/holidays`, `/admin/scripts`, `/admin/concepts` and `/admin/audit` render a
-"Not built yet" placeholder. Only `/admin/settings` is real.
+**Most of the administrator screens are built too**: Users, Content, Scripts, Concepts and
+Settings. Reviewing and publishing the curriculum is a screen now, not a SQL statement.
 
-So the administrative jobs here — publishing content, creating accounts, loading public
-holidays — are done with SQL in the same editor. That is workable because of how rarely they
-happen: publishing once, holidays once a year, accounts around twenty a year. It is not
-elegant. It is written down precisely so it does not depend on anyone remembering it.
+**Two are still SQL**: public holidays (`/admin/holidays`) and the audit log
+(`/admin/audit`). Both are marked "Soon" in the navigation rather than left to be discovered.
+
+And **creating an account is done in the Supabase dashboard**, not in the app. That one is
+not an oversight: creating an auth user is a privileged operation that needs the
+`service_role` key, and that key must never reach a browser. Once an account exists, its
+name and roles are editable in Admin → Users.
 
 Every SQL snippet below has been run against the real schema. Copy them as they are.
 
@@ -61,7 +63,7 @@ Every SQL snippet below has been run against the real schema. Copy them as they 
 
 ## How to copy a file from GitHub
 
-You will do this seven times, so here it is once.
+You will do this a dozen times, so here it is once.
 
 1. Open the repository: <https://github.com/MadNuurCapital/Academy>
 2. Switch the branch selector to **`claude/atlas-academy-planning-vgf3ym`**.
@@ -204,6 +206,7 @@ instead.)*
 |---|---|
 | `supabase/browser/10-update-enrolment-actions.sql` | Pause, resume and withdraw an enrolment |
 | `supabase/browser/11-update-content-authoring.sql` | Editing the curriculum inside the app — lessons, quiz questions, answers and publishing. It also repairs a fault that made **every** quiz edit fail. |
+| `supabase/browser/12-update-content-publishing.sql` | Publishing a script or a concept presentation, with an audit entry |
 
 Paste and run each one you have not run yet, in numeric order. They are safe to run twice,
 they never touch the bundles you have already applied, and each records itself so the
@@ -215,8 +218,8 @@ database and the migration ledger stay in step.
 > select count(*) as recorded from supabase_migrations.schema_migrations;
 > ```
 >
-> Twelve from bundle 07, plus one per update file. With updates 10 and 11 run, that is 14.
-> (If you skipped the optional bundle 07, expect 2 — that is fine, nothing depends on it.)
+> Twelve from bundle 07, plus one per update file. With updates 10 to 12 run, that is 15.
+> (If you skipped the optional bundle 07, expect 3 — that is fine, nothing depends on it.)
 
 ---
 
@@ -280,38 +283,23 @@ incomplete rather than complete, so nobody gets advanced past material you have 
 You are the licensed advisor releasing this to new joiners, so the review is yours. Read
 each module before publishing it.
 
-**Publish one day at a time as you clear it:**
+**Do this in the app, not in SQL.** Sign in as yourself and open **Admin → Content**. It
+lists all thirty days with every module's status, and each module opens for reading: its
+description, every lesson in full, and every quiz question with its options, the correct
+answer marked, and the explanation an advisor sees after passing. Correct anything that needs
+it as you read, then press Publish on that module.
 
-```sql
-update public.modules m
-set status = 'published', last_reviewed_at = current_date
-from public.programme_days pd
-where pd.id = m.programme_day_id
-  and pd.day_number = 1;          -- change the day number each time
-```
+The count at the top — "0 of 30 modules published" — is your progress through the review.
 
-**See what is left:**
+**The scripts and the concept presentations are separate**, under **Admin → Scripts** and
+**Admin → Concepts**. They are not tied to a day, so publishing a day does not touch them,
+and an advisor with an unpublished script library sees an empty Scripts page from Day 1.
+Read the six scripts and four presentations and publish each one the same way.
 
-```sql
-select pd.day_number, m.title, m.status
-from public.modules m
-join public.programme_days pd on pd.id = m.programme_day_id
-order by pd.day_number, m.sequence;
-```
-
-**The scripts and concept presentations publish separately.** They are not tied to a day, so
-the per-day statement above does not touch them — and an advisor with an unpublished script
-library sees an empty Scripts page from Day 1. Publish them once you have read the six
-scripts and four concept presentations:
-
-```sql
-update public.scripts set status = 'published', approved_at = now() where status = 'draft';
-update public.concept_presentations set status = 'published' where status = 'draft';
-```
-
-**Once you have reviewed the whole set**, `supabase/seed/99-publish-all.sql` does all three
-of these at once — every remaining module, script and concept presentation. Copy it from
-GitHub the same way as the bundles. It exists for after the review, not instead of it.
+**If you would rather do it in bulk after reviewing everything**,
+`supabase/seed/99-publish-all.sql` publishes every remaining module, script and concept
+presentation in one statement. Copy it from GitHub the same way as the bundles. It exists for
+after the review, not instead of it.
 
 > **The check:**
 >
@@ -534,18 +522,15 @@ For the record, so nobody hunts for a screen that does not exist:
 
 | Route | Status | How the job gets done instead |
 |---|---|---|
-| `/admin/content` | Placeholder | Publish with SQL — step 6 |
-| `/admin/users` | Placeholder | Supabase dashboard + SQL — step 9 |
-| `/admin/holidays` | Placeholder | SQL — step 5 |
-| `/admin/scripts` | Placeholder | Seeded; edit with SQL |
-| `/admin/concepts` | Placeholder | Seeded; edit with SQL |
-| `/admin/audit` | Placeholder | Query `public.audit_log` directly |
+| `/admin/content` | **Built** | Read, correct and publish every day, module, lesson and quiz |
+| `/admin/users` | **Built** | Rename, grant and remove roles, deactivate |
+| `/admin/scripts` | **Built** | Edit and publish the script library |
+| `/admin/concepts` | **Built** | Edit and publish the concept presentations |
 | `/admin/settings` | **Built** | — |
+| `/admin/holidays` | Not built | SQL — step 5 |
+| `/admin/audit` | Not built | Query `public.audit_log` directly |
 
-Creating accounts from inside the browser is the one of these that cannot simply be built as
-another screen: it needs a server-side function holding the `service_role` key, since
-creating an auth user is a privileged operation. That is a deliberate piece of work with real
-security weight attached, not an afternoon's wiring.
-
-Run one intake on this runbook first. You will know by the end of it which of these you
-actually want, rather than guessing now.
+**Creating an account** is not on this list because it is not going to be a screen. It needs
+the `service_role` key, and that key must never be sent to a browser — so accounts are
+created in the Supabase dashboard (step 9) and everything after that is done in Admin →
+Users.

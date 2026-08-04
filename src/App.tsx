@@ -39,6 +39,8 @@ import { SettingsPage } from '@/pages/admin/SettingsPage';
 import { UsersPage } from '@/pages/admin/UsersPage';
 import { ContentPage } from '@/pages/admin/ContentPage';
 import { ModuleEditorPage } from '@/pages/admin/ModuleEditorPage';
+import { ScriptsAdminPage } from '@/pages/admin/ScriptsAdminPage';
+import { ConceptsAdminPage } from '@/pages/admin/ConceptsAdminPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
 import { RoleHomeRedirect } from '@/pages/RoleHomeRedirect';
 import { NoAccessPage } from '@/pages/NoAccessPage';
@@ -145,8 +147,8 @@ export function App() {
                 {/* Lessons and quizzes are edited inside their module rather than on
                     routes of their own — an author works on a day, not on a lesson id. */}
                 <Route path="/admin/content/modules/:moduleId" element={<ModuleEditorPage />} />
-                <Route path="/admin/scripts" element={<PlaceholderPage title="Script library" phase="Phase 4" />} />
-                <Route path="/admin/concepts" element={<PlaceholderPage title="Concept presentations" phase="Phase 4" />} />
+                <Route path="/admin/scripts" element={<ScriptsAdminPage />} />
+                <Route path="/admin/concepts" element={<ConceptsAdminPage />} />
                 <Route path="/admin/rubrics" element={<PlaceholderPage title="Scoring rubrics" phase="Phase 4" />} />
                 <Route path="/admin/users" element={<UsersPage />} />
                 <Route path="/admin/holidays" element={<PlaceholderPage title="Public holidays" phase="Phase 3" />} />

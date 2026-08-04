@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import type { ContentStatus, Lesson, Module, ProgrammeDay } from '@/types/database';
+import type {
+  ConceptPresentation,
+  ContentStatus,
+  Lesson,
+  Module,
+  ProgrammeDay,
+  Script,
+} from '@/types/database';
 
 /**
  * Content authoring.
@@ -224,6 +231,72 @@ export function useDeleteQuizQuestion() {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Scripts and concept presentations
+//
+// Both are plain updates: managers have had write access to these tables since
+// migration 0011. Only publishing goes through a function, because that is the
+// moment a form of words becomes something a new advisor says to a member of
+// the public, and it is worth a line in the audit log.
+// ---------------------------------------------------------------------------
+
+/** Every script, published or not — the editor needs the drafts. */
+export function useAllScripts() {
+  return useQuery({
+    queryKey: ['authoring-scripts'],
+    queryFn: async (): Promise<Script[]> => {
+      const { data, error } = await supabase.from('scripts').select('*').order('sequence');
+      if (error) throw new Error(error.message);
+      return (data ?? []) as Script[];
+    },
+  });
+}
+
+export function useUpdateScript() {
+  return useAuthoringMutation<{ scriptId: string; changes: Partial<Script> }>((input) =>
+    supabase.from('scripts').update(input.changes).eq('id', input.scriptId),
+  );
+}
+
+export function useSetScriptStatus() {
+  return useAuthoringMutation<{ scriptId: string; status: ContentStatus }>((input) =>
+    supabase.rpc('set_script_status', {
+      target_script_id: input.scriptId,
+      new_status: input.status,
+    }),
+  );
+}
+
+export function useAllConcepts() {
+  return useQuery({
+    queryKey: ['authoring-concepts'],
+    queryFn: async (): Promise<ConceptPresentation[]> => {
+      const { data, error } = await supabase
+        .from('concept_presentations')
+        .select('*')
+        .order('sequence');
+      if (error) throw new Error(error.message);
+      return (data ?? []) as ConceptPresentation[];
+    },
+  });
+}
+
+export function useUpdateConcept() {
+  return useAuthoringMutation<{ conceptId: string; changes: Partial<ConceptPresentation> }>(
+    (input) =>
+      supabase.from('concept_presentations').update(input.changes).eq('id', input.conceptId),
+  );
+}
+
+export function useSetConceptStatus() {
+  return useAuthoringMutation<{ conceptId: string; status: ContentStatus }>((input) =>
+    supabase.rpc('set_concept_status', {
+      target_concept_id: input.conceptId,
+      new_status: input.status,
+    }),
+  );
+}
+
 function invalidateContent(queryClient: ReturnType<typeof useQueryClient>) {
   for (const key of [
     'content-outline',
@@ -232,6 +305,11 @@ function invalidateContent(queryClient: ReturnType<typeof useQueryClient>) {
     'module-detail',
     'modules-for-day',
     'lesson',
+    'authoring-scripts',
+    'authoring-concepts',
+    'scripts',
+    'script',
+    'concepts',
   ]) {
     void queryClient.invalidateQueries({ queryKey: [key] });
   }

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Check, Plus, Trash2 } from 'lucide-react';
 import {
@@ -15,65 +15,10 @@ import {
 import { Panel, Well } from '@/components/ui/Panel';
 import { Button } from '@/components/ui/Button';
 import { ErrorState, LoadingState } from '@/components/ui/States';
+import { AutoTextarea, SaveRow } from '@/components/admin/Editor';
+import { inputClass } from '@/components/admin/editorState';
 import { cn } from '@/lib/cn';
 import type { Lesson } from '@/types/database';
-
-const inputClass =
-  'w-full rounded-md border border-input bg-surface px-3 py-2.5 text-base';
-
-/**
- * A text box that grows to fit what is in it.
- *
- * Questions, options and explanations are all one to three lines on a laptop and
- * three to six on a phone. A fixed height clips them, and clipped text on the
- * one screen whose entire purpose is reading and correcting wording is a bad
- * trade for a tidier column.
- */
-function AutoTextarea({
-  value,
-  onChange,
-  className,
-  singleLine,
-  ...rest
-}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
-  value: string;
-  /**
-   * For titles: wraps onto as many lines as it needs to be read, but refuses to
-   * take a line break, because a title with a newline in it renders as one long
-   * run everywhere else in the application.
-   */
-  singleLine?: boolean;
-}) {
-  const ref = useRef<HTMLTextAreaElement>(null);
-
-  useLayoutEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-
-    function fit() {
-      if (!element) return;
-      element.style.height = 'auto';
-      element.style.height = `${element.scrollHeight}px`;
-    }
-
-    fit();
-    // Narrowing the window rewraps the text, which changes the height it needs.
-    window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
-  }, [value]);
-
-  return (
-    <textarea
-      ref={ref}
-      rows={1}
-      value={value}
-      onChange={onChange}
-      onKeyDown={singleLine ? (event) => { if (event.key === 'Enter') event.preventDefault(); } : undefined}
-      className={cn(inputClass, 'resize-none overflow-hidden', className)}
-      {...rest}
-    />
-  );
-}
 
 /**
  * Review and correct one module.
@@ -552,34 +497,6 @@ function QuestionEditor({
             ? ((save.error ?? remove.error) as Error).message
             : 'That did not save.'}
         </p>
-      )}
-    </div>
-  );
-}
-
-function SaveRow({
-  dirty,
-  saved,
-  pending,
-  error,
-  onSave,
-}: {
-  dirty: boolean;
-  saved: boolean;
-  pending: boolean;
-  error: unknown;
-  onSave: () => Promise<void>;
-}) {
-  return (
-    <div className="flex flex-wrap items-center gap-3">
-      <Button size="sm" disabled={!dirty} isLoading={pending} onClick={() => void onSave()}>
-        Save
-      </Button>
-      {saved && !dirty && <span className="console-label text-success">Saved</span>}
-      {error instanceof Error && (
-        <span role="alert" className="text-sm font-medium text-danger">
-          {error.message}
-        </span>
       )}
     </div>
   );
